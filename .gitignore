@@ -1,0 +1,10 @@
+*
+!Makefile
+!.gitignore
+!*.go
+!*/
+!*.cpp
+!*.h
+!*.c
+!go.mod
+*/_obj/
