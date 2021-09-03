@@ -12,6 +12,12 @@ import (
 
 //go:generate go build main.go
 
+/*
+export GODEBUG=asyncpreemptoff=1
+
+unset GODEBUG
+*/
+
 func main() {
 
 	var useRaw = flag.Bool("r", false, "use raw syscall")
@@ -32,35 +38,39 @@ func main() {
 		}
 	}()
 
-	var selectCall func() error
-	var nfd = syscall.Stderr + 1
+	var call func() error
+	var nfd int
+	nfd, _ = syscall.Kqueue()
+
+	//var fd, _ = syscall.Socket(syscall.AF_INET, syscall.SOCK_STREAM, 0)
+	var events [1]syscall.Kevent_t
 
 	if *useRaw {
-		selectCall = func() error {
-			var timeout = &syscall.Timeval{
-				Usec: 1000 * int64(ms),
+		call = func() error {
+			var timeout = &syscall.Timespec{
+				Nsec: int64(1000 * 1000 * (*timeSleep)),
 			}
 			_, _, e1 := syscall.RawSyscall6(
-				syscall.SYS_SELECT,
-				uintptr(nfd), uintptr(0),
-				uintptr(0), uintptr(0),
-				uintptr(unsafe.Pointer(timeout)), 0,
+				syscall.SYS_KEVENT,
+				uintptr(nfd), 0, 0,
+				uintptr(unsafe.Pointer(&events[0])), uintptr(len(events)),
+				uintptr(unsafe.Pointer(timeout)),
 			)
 			return e1
 		}
 	} else {
-		selectCall = func() error {
-			var timeout = &syscall.Timeval{
-				Usec: 1000 * int64(ms),
+		call = func() error {
+			var timeout = &syscall.Timespec{
+				Nsec: int64(1000 * 1000 * (*timeSleep)),
 			}
-			_, err := syscall.Select(nfd, nil, nil, nil, timeout)
+			_, err := syscall.Kevent(nfd, nil, events[:], timeout)
 			return err
 		}
 	}
 
 	var cnt int
 	for {
-		e1 := selectCall()
+		e1 := call()
 		if e1 == nil || e1 == syscall.Errno(0) || e1 == syscall.EINTR {
 			log.Printf("[%v] retry, err:%v", time.Now().UnixNano()/int64(time.Millisecond), e1)
 			cnt++
