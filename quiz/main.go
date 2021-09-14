@@ -74,7 +74,7 @@ func main() {
 		if e1 == nil || e1 == syscall.Errno(0) || e1 == syscall.EINTR {
 			log.Printf("[%v] retry, err:%v", time.Now().UnixNano()/int64(time.Millisecond), e1)
 			cnt++
-			if cnt > *loopNum {
+			if cnt >= *loopNum {
 				break
 			}
 		} else {
