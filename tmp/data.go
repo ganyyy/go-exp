@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 const DATA = "12356"

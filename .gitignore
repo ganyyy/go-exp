@@ -8,3 +8,4 @@
 !*.c
 !go.mod
 */_obj/
+.idea/

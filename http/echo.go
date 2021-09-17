@@ -18,7 +18,7 @@ func main() {
 	})
 
 	e.GET("/showInfo", func(context echo.Context) error {
-		return context.String(http.StatusOK, "gan")
+		return context.String(http.StatusOK, "e")
 	})
 
 	e.Logger.Fatal(e.Start(":9900"))
