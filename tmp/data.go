@@ -1,8 +1,5 @@
 //go:build ignore
-<<<<<<< HEAD
-=======
 // +build ignore
->>>>>>> 临时修改
 
 package main
 
@@ -15,13 +12,11 @@ import (
 )
 
 type Test struct {
-
 }
 
 func (t Test) Get() {
 
 }
-
 
 func main() {
 
@@ -35,7 +30,6 @@ func main() {
 			println(sig)
 		}
 	}()
-
 
 	http.ListenAndServe(":9999", nil)
 
