@@ -1,4 +1,8 @@
 //go:build ignore
+<<<<<<< HEAD
+=======
+// +build ignore
+>>>>>>> 临时修改
 
 package main
 
