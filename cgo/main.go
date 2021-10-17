@@ -4,19 +4,38 @@ package main
 #include "./plugin.h"
 */
 import "C"
-import "log"
+import (
+	"fmt"
+	"log"
+	"unsafe"
+)
 
 //go:generate go tool cgo main.go
 
-////export GoF
-//func GoF(arg1, arg2 int, args string) int64 {
-//	log.Println(arg1, arg2, args)
-//	return int64(arg1 + arg2)
-//}
-
 func main() {
+	//call c function
+	C.helloFromC()
 
-	var sock = C.tcpSocket()
+	var ret = C.addFromC(C.int(100), C.int(200))
 
-	log.Println(sock)
+	log.Println(ret)
+
+	var cs = C.CString("12323412")
+	C.print_str(cs)
+	C.free(unsafe.Pointer(cs))
+}
+
+//export HelloFromGo
+func HelloFromGo() {
+	fmt.Printf("Hello from Go!\n")
+}
+
+//export Add
+func Add(a, b int) int {
+	return a + b
+}
+
+//export HelloByGo
+func HelloByGo(name string) *C.char {
+	return C.CString("greeting " + name)
 }
