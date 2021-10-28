@@ -1,10 +1,9 @@
 package main
 
 import (
-	"log"
-	"net/http"
+	"fmt"
 	_ "net/http/pprof"
-	"time"
+	"reflect"
 	"unsafe"
 
 	"go-exp/export/package_b"
@@ -12,10 +11,9 @@ import (
 
 type Outer struct {
 	Name string
-	Age int
-	Tmp [1<<20]int
+	Age  int
+	Tmp  [1 << 20]int
 }
-
 
 func TestExchangeGC() *Outer {
 	var inner = package_b.GetInner("1234", 1234)
@@ -23,19 +21,32 @@ func TestExchangeGC() *Outer {
 	return outer
 }
 
+//go:linkname Add go-exp/export/package_b.Add
+func Add(a, b int) int
+
+type mainStu struct {
+	name string
+}
+
+//go:linkname setName go-exp/export/package_b.(*stu).setName
+func setName(stu *mainStu, newName string)
+
 func main() {
+	fmt.Println(Add(10, 20))
 
-	go func() {
-		var out = TestExchangeGC()
-		time.Sleep(time.Minute * 2)
-		out.Tmp[100] = 1000
+	package_b.ShowFuncAddr(Add)
+	package_b.ShowFuncAddr(package_b.Add)
 
-		time.Sleep(time.Minute * 2)
+	var funcAdd1 = reflect.ValueOf(Add)
+	var funcAdd2 = reflect.ValueOf(package_b.Add)
 
-		out.Tmp[200] = 1000
+	var rf1 = (*package_b.FuncVal)(unsafe.Pointer(&funcAdd1))
+	var rf2 = (*package_b.FuncVal)(unsafe.Pointer(&funcAdd2))
 
-		log.Println(out.Tmp[200])
-	}()
+	fmt.Println(rf1, rf2)
 
-	_ = http.ListenAndServe(":9999", nil)
+	var stu = package_b.NewStu()
+	fmt.Println(stu)
+	setName(*(**mainStu)(unsafe.Pointer(&stu)), "2344")
+	fmt.Println(stu)
 }

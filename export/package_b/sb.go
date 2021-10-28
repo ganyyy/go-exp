@@ -1,13 +1,16 @@
 package package_b
 
 import (
+	"fmt"
 	"log"
+	"reflect"
+	"unsafe"
 )
 
 type inner struct {
 	name string
-	age int
-	tmp [1<<20]int
+	age  int
+	tmp  [1 << 20]int
 }
 
 func (i *inner) show() {
@@ -29,5 +32,41 @@ type Show interface {
 
 type Outer struct {
 	Name string
-	Age int
+	Age  int
+}
+
+type FuncVal struct {
+	_   uintptr
+	Ptr unsafe.Pointer
+}
+
+func Add(a, b int) int {
+	fmt.Printf("Call Add:")
+	return a + b
+}
+
+func ShowFuncAddr(val interface{}) {
+	var value = reflect.ValueOf(val)
+	if value.Kind() != reflect.Func {
+		fmt.Println("Must input func!")
+		return
+	}
+
+	fmt.Printf("the func addr is:%v\n", (*FuncVal)(unsafe.Pointer(&val)).Ptr)
+}
+
+func ShowAddAddr() {
+	ShowFuncAddr(Add)
+}
+
+func NewStu() *stu {
+	return &stu{}
+}
+
+type stu struct {
+	name string
+}
+
+func (s *stu) setName(newName string) {
+	s.name = newName
 }
