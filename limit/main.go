@@ -36,6 +36,7 @@ func TestGC() {
 		var tmp2 = make([]byte, 1024*1024)
 		println("tmp:", (*uintptr3)(unsafe.Pointer(&tmp))[0], "tmp2:", (*uintptr3)(unsafe.Pointer(&tmp2))[0])
 		tmp2[198] = '2'
+		tmp2[199] = 'A'
 		println(tmp2[198], ret[199])
 	}()
 	time.AfterFunc(time.Second, func() {
@@ -46,7 +47,7 @@ func TestGC() {
 
 func UnsafeToString(str string) []byte {
 	// return nil
-	var head = (*reflect.StringHeader)(unsafe.Pointer(&str)) // 这样写是不对的. 因为发生了一次 uintptr 的拷贝
+	var head = *(*reflect.StringHeader)(unsafe.Pointer(&str)) // 这样写是不对的. 因为发生了一次 uintptr 的拷贝
 	// var head = (*reflect.StringHeader)(unsafe.Pointer(&str))
 
 	// 这种写法也是不对的. 因为同样发生了 uintptr 的拷贝. reflect.SliceHeader.Data 不是一个合法的指针

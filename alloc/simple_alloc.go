@@ -49,8 +49,7 @@ func (i arenaIdx) l2() uint {
 
 }
 
-func main() {
-
+func showAddr() {
 	var showInfo = func(p uintptr) {
 		var idx = arenaIndex(p)
 		fmt.Printf("p:%X, p-Offset: %X, idx:%X l1:%X, l2:%X\n", p, p-arenaBaseOffset, idx, idx.l1(), idx.l2())

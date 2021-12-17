@@ -59,8 +59,7 @@ func showTypeInfo(t interface{}) {
 	_ = dd
 }
 
-func main() {
-
+func showGCInfo() {
 	var s = make([]struct {
 		_ int
 		_ *int
