@@ -22,12 +22,18 @@ func newItem() *FFF {
 
 func testFinalizer() {
 	var i = newItem()
-	//var st = time.Now()
-	runtime.SetFinalizer(i, (*FFF).close)
+	// var st = time.Now()
+	// runtime.SetFinalizer(i, (*FFF).close) // 正确的. 成员方法本质上就是接收对象作为首个参数的方法
+
 	// runtime.SetFinalizer(i, func(x interface{}) {
-	// 	runtime.SetFinalizer(i, nil) // 错误的
+	// 	runtime.SetFinalizer(i, nil) // 错误的, 这种循环引用会导致该对象一直无法释放.
 	// 	println(1)
 	// })
+
+	runtime.SetFinalizer(i, func(x interface{}) {
+		runtime.SetFinalizer(x, nil) // 正确的, 此时没有捕获外部变量
+		println(1)
+	})
 }
 
 func main() {
