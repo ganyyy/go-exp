@@ -55,7 +55,7 @@ func showTypeInfo(t interface{}) {
 		typ = typ.Elem()
 	}
 	var dd = (*rtype)((*iface)(unsafe.Pointer(&typ)).data)
-	fmt.Printf("%10s:{ptrdata：%2d, gcdata Val:0b%08b}, size:%v\n", typ.Name(), dd.ptrdata, *dd.gcdata, typ.Size())
+	fmt.Printf("%10s:{ptrdata: %2d, gcdata Val:0b%08b}, size:%v\n", typ.Name(), dd.ptrdata, *dd.gcdata, typ.Size())
 	_ = dd
 }
 

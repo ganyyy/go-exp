@@ -11,6 +11,16 @@ type FFF struct {
 	I [1 << 20]int
 }
 
+func init() {
+	var t = newItem()
+
+	runtime.SetFinalizer(t, func(v interface{}) {
+		println("release init t")
+	})
+
+	runtime.KeepAlive(t)
+}
+
 func (f *FFF) close() {
 	runtime.SetFinalizer(f, nil)
 	println(1)

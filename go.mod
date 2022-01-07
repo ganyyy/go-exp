@@ -10,11 +10,14 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/labstack/echo/v4 v4.5.0
 	github.com/labstack/gommon v0.3.0
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007
 )
 
+require github.com/bytedance/gopkg v0.0.0-20210705062217-74c74ebadcae // indirect
+
 require (
+	github.com/cloudwego/netpoll v0.1.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
