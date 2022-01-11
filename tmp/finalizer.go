@@ -46,11 +46,55 @@ func testFinalizer() {
 	})
 }
 
+type finalizerRef struct {
+	parent *finalizerCheck
+}
+
+type finalizerCheck struct {
+	active chan int
+	ref    *finalizerRef
+}
+
+var cnt int
+
+func finalizerHandler(f *finalizerRef) {
+	select {
+	case f.parent.active <- cnt:
+		cnt++
+	default:
+	}
+	runtime.SetFinalizer(f, finalizerHandler)
+}
+
+func startFinalizerCheck() <-chan int {
+	var check finalizerCheck
+	check.active = make(chan int, 1)
+	check.ref = &finalizerRef{
+		parent: &check,
+	}
+	runtime.SetFinalizer(check.ref, finalizerHandler)
+	// 去掉引用, 下次GC时就会被回收
+	check.ref = nil
+	return check.active
+}
+
 func main() {
 	testFinalizer()
+
+	go func() {
+		for i := range startFinalizerCheck() {
+			println(i)
+		}
+	}()
+
 	time.Sleep(time.Second * 1)
 	runtime.GC()
 	time.Sleep(time.Second * 1)
+	runtime.GC()
 	time.Sleep(time.Second * 1)
-
+	runtime.GC()
+	time.Sleep(time.Second * 1)
+	runtime.GC()
+	time.Sleep(time.Second * 1)
+	runtime.GC()
 }
