@@ -7,14 +7,20 @@ require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/mock v1.6.0
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.5.2
 	github.com/labstack/echo/v4 v4.5.0
 	github.com/labstack/gommon v0.3.0
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007
 )
 
 require (
+	github.com/bytedance/gopkg v0.0.0-20210705062217-74c74ebadcae // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+)
+
+require (
+	github.com/cloudwego/netpoll v0.1.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
@@ -33,6 +39,6 @@ require (
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	golang.org/x/text v0.3.6 // indirect
-	google.golang.org/protobuf v1.23.0 // indirect
+	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
