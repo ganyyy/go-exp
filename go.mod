@@ -16,6 +16,8 @@ require (
 
 require (
 	github.com/bytedance/gopkg v0.0.0-20210705062217-74c74ebadcae // indirect
+	github.com/huandu/go-tls v1.0.1 // indirect
+	golang.org/x/arch v0.0.0-20210901143047-ebb09ed340f1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
 
@@ -23,6 +25,7 @@ require (
 	github.com/cloudwego/netpoll v0.1.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/go-kiss/monkey v0.0.0-20210912230757-40cda447d0e3
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
