@@ -1,12 +1,10 @@
-//go:build ignore
-// +build ignore
-
 package main
 
 import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 	"runtime"
 	"time"
 )
@@ -16,14 +14,32 @@ func alloc() int {
 	runtime.SetFinalizer(&m, func(obj interface{}) {
 		log.Println("Finalizer m")
 	})
-	time.Sleep(time.Minute)
-	return m[0]
+	time.Sleep(time.Second)
+	runtime.KeepAlive(m)
+	return 0
 }
 
+// 内存: go tool pprof -alloc_space http://localhost:9999/debug/pprof/heap
+//
+
 func main() {
+
+	var base, _ = os.Getwd()
+	log.Println(base)
+
+	defer (&CPUProfile{}).Init(base + "/cpu.pprof").Start().Done()
+	defer (&MemProfile{}).Init(base + "/mem.pprof").Start().Done()
+	defer (&HTTPProfile{}).Init("localhost:9999").Start().Done()
+
 	go func() {
-		var ret = alloc()
-		log.Println(ret)
+		for i := 0; i < 10; i++ {
+			var ret = alloc()
+			log.Println(ret)
+		}
 	}()
-	_ = http.ListenAndServe(":9999", nil)
+	go func() {
+		_ = http.ListenAndServe(":9999", nil)
+	}()
+
+	time.Sleep(time.Minute * 5)
 }

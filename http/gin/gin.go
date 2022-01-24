@@ -29,6 +29,11 @@ func main() {
 	}
 
 	r.POST("/postform", func(context *gin.Context) {
+
+		_ = context.Request.ParseForm()
+
+		log.Printf("%+v", context.Request.PostForm)
+
 		var d Data
 		var err = context.Bind(&d)
 		log.Println(err)

@@ -1,0 +1,17 @@
+POST http://localhost:8899/postform
+Content-Type: application/x-www-form-urlencoded
+
+age=99&name=lalal&&address=12321
+
+###
+POST http://localhost:8899/postform2
+Content-Type: application/json
+
+{
+  "age": 100,
+  "name": "lalala",
+  "address": "12331"
+}
+
+###
+GET http://localhost:8899/ping
