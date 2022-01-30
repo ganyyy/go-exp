@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -14,12 +16,11 @@ func (v vector[T]) show() {
 
 type safeMap[K comparable, V any] map[K]V
 
-func (s safeMap[K,V]) show() {
+func (s safeMap[K, V]) show() {
 	for k, v := range s {
 		fmt.Println(k, v)
 	}
 }
-
 
 func main() {
 	var intVector vector[int]

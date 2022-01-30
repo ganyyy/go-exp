@@ -1,7 +1,8 @@
+//go:build ignore
+
 package main
 
 import (
-	"constraints"
 	"fmt"
 	"strconv"
 )
@@ -18,6 +19,13 @@ type Addable interface {
 	ToString() string
 }
 
+func GetOrDefault[T any](src interface{}, def T) T {
+	if t, ok := src.(T); ok {
+		return t
+	}
+	return def
+}
+
 type set[T comparable] map[T]struct{}
 
 func (s set[T]) pack(params ...T) {
@@ -27,7 +35,7 @@ func (s set[T]) pack(params ...T) {
 }
 
 func (s set[T]) unpack() []T {
-	var ret = make([]T, 0, len(s))
+	var ret = make([]T, 0, len(map[T]struct{}(s)))
 	for k := range s {
 		ret = append(ret, k)
 	}
@@ -45,7 +53,7 @@ func packSet[T comparable](params ...T) set[T] {
 type myInt int
 
 type Addable2 interface {
-	constraints.Integer | ~string
+	~int | ~string
 	String() string
 }
 
@@ -67,15 +75,28 @@ func Map[T any](src []T, opt func(T) T) []T {
 	return ret
 }
 
-func Add[T Addable2](a, b T) string {
+func Add[T, T2 Addable2](a T2, b T) string {
+	return a.String() + b.String()
+}
+
+func Add2(a, b fmt.Stringer) string {
 	return a.String() + b.String()
 }
 
 func main() {
 
+	var a = "sss"
+	var ret = GetOrDefault[int](a, 100)
+	var ret2 = GetOrDefault[string](a, "123131")
+
+	println(ret, ret2)
+
 	println(Add(myInt(10), myInt(20)))
 	println(Add(myInt(10), myInt(20)))
-	println(Add(myString("1111"), myString("bbb")))
+	println(Add(myInt(10), myString("20")))
+	println(Add(myString("bbb"), myString("bbb")))
+	println(Add2(myString("bbb"), myString("bbb")))
+	println(Add2(myInt(10), myString("20")))
 
 	var src = []int{1, 2, 3, 4, 5, 6}
 	fmt.Println(Map[int](src, func(t int) int {
