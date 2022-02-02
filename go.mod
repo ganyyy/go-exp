@@ -1,4 +1,4 @@
-module go-exp
+module ganyyy.com/go-exp
 
 go 1.18
 
