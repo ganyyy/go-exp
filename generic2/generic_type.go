@@ -14,10 +14,9 @@ func (v *MyVector[T]) Add(ele T) {
 type MyMap[K comparable, V any] map[K]V
 
 //P 泛型约束作为属性类型. 如果引用自身, 那么自身也需要使用泛型约束
-// 貌似现在不支持泛型类型存在泛型方法(?)
 type P[T1, T2 any] struct {
 	F  *P[T1, T2] // 这两种类型声明都是合法的(!)
-	PP *P[T2, T1] // 草案中说的是必须要保证类型参数的顺序一致性, 现在看来限制取消了
+	PP *P[T2, T1] // 草案中说的是必须要保证类型参数的顺序一致性
 	V1 T1
 	V2 T2
 }

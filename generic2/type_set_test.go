@@ -16,3 +16,9 @@ func TestIndex2(t *testing.T) {
 	assert.Equal(t, Index(src, 10), -1)
 	assert.Equal(t, Index(src, 5), 4)
 }
+
+func TestEqual(t *testing.T) {
+	var a, b int
+
+	assert.True(t, Equal(a, b))
+}

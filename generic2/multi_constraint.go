@@ -1,6 +1,9 @@
 package generic2
 
-import "constraints"
+import (
+	"constraints"
+	"strconv"
+)
 
 //AddInterface 接口也允许添加泛型约束
 type AddInterface[T constraints.Integer] interface {
@@ -74,4 +77,46 @@ type Graph[Node NodeConstraint[Edge], Edge EdgeConstraint[Node]] struct {
 func NewGraph[Node NodeConstraint[Edge], Edge EdgeConstraint[Node]](_ []Node) *Graph[Node, Edge] {
 	var graph Graph[Node, Edge]
 	return &graph
+}
+
+type AnyConvert[From any, To any] interface {
+	Convert(From) To
+}
+
+type Convert2Int struct{}
+
+func (c Convert2Int) Convert(s string) int {
+	var v, _ = strconv.Atoi(s)
+	return v
+}
+
+type Convert2String struct{}
+
+func (c Convert2String) Convert(i int) string {
+	return strconv.Itoa(i)
+}
+
+func ConvertTo[CT AnyConvert[From, To], From any, To any](c CT, v From) To {
+	return c.Convert(v)
+}
+
+func ConvertSlice[CT AnyConvert[From, To], From any, To any](c CT, src []From) []To {
+	var ret = make([]To, len(src))
+	for i, v := range src {
+		ret[i] = c.Convert(v)
+	}
+	return ret
+}
+
+type ConvertToOther[To any] interface {
+	Convert() To
+}
+
+func (m MyString) Convert() int {
+	var v, _ = strconv.Atoi(string(m))
+	return v
+}
+
+func Convert3[T ConvertToOther[To], To any](v T) To {
+	return v.Convert()
 }

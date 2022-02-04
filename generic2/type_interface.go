@@ -49,7 +49,7 @@ func ShowTypeInterface4[T1 comparable, T2 any](_ []map[T1]T2) {}
 
 /*
 类型统一
-	1. 忽略所有的 untyped const 类型的实参和其对应的形参泛型参数
+	1. 忽略所有的 underlying const 类型的实参和其对应的形参泛型参数
 	2. 匹配有类型的实参和泛型参数, 并反过来确定无类型的常量对应的泛型类型是否符合有类型实参的预期
        如果都是无类型的常量, 会使用其默认类型. 比如 1 的默认类型是 int, 1.0的默认类型是float64
 */

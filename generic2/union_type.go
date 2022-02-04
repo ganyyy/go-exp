@@ -54,13 +54,13 @@ func AddUnion[T interface {
 	但是可以用来进行类型检查(错误的)
 */
 
-//type StringFish interface {
-//	string | fmt.Stringer
-//}
-//
-//func RunStringFish[T StringFish](T) {
-//
-//}
+type StringFish interface {
+	string
+}
+
+func RunStringFish[T StringFish](T) {
+
+}
 
 /*
 	当约束中, 所有嵌入的约束无法同时满足时, 这个约束就无法实例化

@@ -25,3 +25,29 @@ func TestNewGraph(t *testing.T) {
 	assert.NotNil(t, g)
 	assert.NotNil(t, g2)
 }
+
+func TestConvertTo(t *testing.T) {
+
+	var convertStringToInt Convert2Int
+	var convertIntToString Convert2String
+
+	assert.Equal(t, ConvertTo[Convert2Int, string, int](convertStringToInt, "2"), 2)
+
+	var src = []string{
+		"1",
+		"2",
+		"3",
+		"4",
+	}
+
+	var ret = ConvertSlice[Convert2Int, string, int](convertStringToInt, src)
+	assert.Equal(t, ret, []int{1, 2, 3, 4})
+
+	assert.Equal(t, src, ConvertSlice[Convert2String, int, string](convertIntToString, ret))
+}
+
+func TestConvert3(t *testing.T) {
+	var c = MyString("12313")
+
+	assert.Equal(t, Convert3[MyString, int](c), 12313)
+}

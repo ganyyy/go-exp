@@ -86,3 +86,11 @@ type ImpossibleConstraint interface {
 	comparable
 	[]int // 切片类型不可比较, 所以不存在 满足该约束的类型
 }
+
+type Comparable interface {
+	comparable
+}
+
+func Equal[T Comparable](a, b T) bool {
+	return a == b
+}
