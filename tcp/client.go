@@ -1,11 +1,13 @@
+//go:build ignore
 // +build ignore
 
 package main
 
 import (
-	"go-exp/helper"
 	"syscall"
 	"time"
+
+	"go-exp/helper"
 )
 
 func main() {
