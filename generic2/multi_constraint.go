@@ -120,3 +120,13 @@ func (m MyString) Convert() int {
 func Convert3[T ConvertToOther[To], To any](v T) To {
 	return v.Convert()
 }
+
+type ConvertFunc[From, To any] func(From) To
+
+func AnyConvertFunc[From any, To any, F ConvertFunc[From, To]](f F, ele ...From) []To {
+	var ret = make([]To, 0, len(ele))
+	for _, v := range ele {
+		ret = append(ret, f(v))
+	}
+	return ret
+}

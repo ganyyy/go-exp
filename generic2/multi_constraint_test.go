@@ -1,8 +1,11 @@
 package generic2
 
 import (
-	"github.com/stretchr/testify/assert"
+	"math/rand"
+	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAddInterfaceFunc(t *testing.T) {
@@ -50,4 +53,45 @@ func TestConvert3(t *testing.T) {
 	var c = MyString("12313")
 
 	assert.Equal(t, Convert3[MyString, int](c), 12313)
+}
+
+func TestAnyConvertFunc(t *testing.T) {
+
+	type StructA struct {
+		Name string
+	}
+
+	type StructB struct {
+		Age int
+	}
+
+	type StructC struct {
+		Address string
+	}
+
+	var a2b ConvertFunc[*StructA, *StructB] = func(a *StructA) *StructB {
+		return &StructB{Age: rand.Intn(10)}
+	}
+
+	var c2a ConvertFunc[*StructC, *StructA] = func(c *StructC) *StructA {
+		return &StructA{Name: c.Address}
+	}
+
+	var b2c ConvertFunc[*StructB, *StructC] = func(b *StructB) *StructC {
+		return &StructC{Address: strconv.Itoa(b.Age)}
+	}
+
+	var srcA = make([]*StructA, 10)
+
+	for i := range srcA {
+		srcA[i] = &StructA{}
+		srcA[i].Name = strconv.Itoa(i)
+	}
+	t.Logf("%+v", srcA)
+	var srcB = AnyConvertFunc[*StructA, *StructB, ConvertFunc[*StructA, *StructB]](a2b, srcA...)
+	t.Logf("%+v", srcB)
+	var srcC = AnyConvertFunc[*StructB, *StructC, ConvertFunc[*StructB, *StructC]](b2c, srcB...)
+	t.Logf("%+v", srcC)
+	srcA = AnyConvertFunc[*StructC, *StructA, ConvertFunc[*StructC, *StructA]](c2a, srcC...)
+	t.Logf("%+v", srcA)
 }
