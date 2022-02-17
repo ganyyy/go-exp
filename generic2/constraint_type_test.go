@@ -1,9 +1,10 @@
 package generic2
 
 import (
-	"github.com/stretchr/testify/assert"
 	"runtime/debug"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDouble(t *testing.T) {
@@ -20,7 +21,7 @@ func TestDouble(t *testing.T) {
 
 		t.Logf("%#v", Double(src))
 		// 不同的约束会推导出不同的结果
-		t.Logf("%#v", DoubleDefined[int](src)) // IDE的Bug, 还是推断有问题
+		t.Logf("%#v", DoubleDefined(src)) // IDE的Bug, 还是推断有问题
 		t.Logf("%#v", DoubleDefined2(src))
 	})
 
@@ -46,7 +47,7 @@ func TestFromStrings(t *testing.T) {
 		// 不满足条件的话无法编译
 		// T -> Setter
 		// PT -> *T
-		var nums = FromStrings2[Settable, *Settable]([]string{"1", "2"})
+		var nums = FromStrings2[Settable]([]string{"1", "2"})
 		var nums2 = FromStrings2[Settable]([]string{"1", "2"})
 		t.Logf("%#v, %#v", nums, nums2)
 	})

@@ -6,7 +6,7 @@ import (
 	"github.com/go-kiss/monkey"
 	"github.com/stretchr/testify/assert"
 
-	"go-exp/mock/monkey_patch"
+	"ganyyy.com/go-exp/mock/monkey_patch"
 )
 
 //go:noinline

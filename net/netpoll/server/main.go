@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"go-exp/net/msg"
-	net "go-exp/net/netpoll"
 	"log"
+
+	"ganyyy.com/go-exp/net/msg"
+	net "ganyyy.com/go-exp/net/netpoll"
 
 	"github.com/cloudwego/netpoll"
 )

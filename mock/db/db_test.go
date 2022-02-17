@@ -2,8 +2,9 @@ package db_test
 
 import (
 	"errors"
-	"go-exp/mock/db"
 	"testing"
+
+	"ganyyy.com/go-exp/mock/db"
 
 	"github.com/golang/mock/gomock"
 )

@@ -4,6 +4,7 @@ package main
 #include "./plugin.h"
 */
 import "C"
+
 import (
 	"fmt"
 	"log"

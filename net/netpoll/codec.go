@@ -2,7 +2,8 @@ package netpoll
 
 import (
 	"encoding/binary"
-	"go-exp/net/msg"
+
+	"ganyyy.com/go-exp/net/msg"
 
 	"github.com/cloudwego/netpoll"
 )

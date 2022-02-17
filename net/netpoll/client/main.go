@@ -1,10 +1,12 @@
 package main
 
 import (
-	"go-exp/net/msg"
-	net "go-exp/net/netpoll"
 	"log"
 	"time"
+
+	net "ganyyy.com/go-exp/net/netpoll"
+
+	"ganyyy.com/go-exp/net/msg"
 
 	"github.com/cloudwego/netpoll"
 )
