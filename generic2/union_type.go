@@ -1,8 +1,9 @@
 package generic2
 
 import (
-	"constraints"
 	"fmt"
+
+	"golang.org/x/exp/constraints"
 )
 
 /*

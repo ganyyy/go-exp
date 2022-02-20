@@ -1,6 +1,6 @@
 package generic2
 
-import "constraints"
+import "golang.org/x/exp/constraints"
 
 /*
 	1. Go不支持运算符重载

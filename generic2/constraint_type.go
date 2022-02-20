@@ -1,8 +1,9 @@
 package generic2
 
 import (
-	"constraints"
 	"strconv"
+
+	"golang.org/x/exp/constraints"
 )
 
 func Double[E constraints.Integer](s []E) []E {

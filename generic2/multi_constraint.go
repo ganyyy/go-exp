@@ -1,8 +1,9 @@
 package generic2
 
 import (
-	"constraints"
 	"strconv"
+
+	"golang.org/x/exp/constraints"
 )
 
 //AddInterface 接口也允许添加泛型约束
