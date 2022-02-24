@@ -1,5 +1,3 @@
-//go:build amd64 && linux
-
 package main
 
 import (
@@ -25,7 +23,7 @@ func RunServer(done context.Context) {
 	unix.SetsockoptInt(int(f.Fd()), unix.SOL_SOCKET, unix.SO_KEEPALIVE, 1)
 
 	// 检查超时
-	unix.SetsockoptInt(int(f.Fd()), unix.IPPROTO_TCP, unix.TCPCNT, 10)
+	unix.SetsockoptInt(int(f.Fd()), unix.IPPROTO_TCP, unix.TCP_KEEPIDLE, 10)
 
 	// 检查间隔
 	unix.SetsockoptInt(int(f.Fd()), unix.IPPROTO_TCP, unix.TCP_KEEPINTVL, 10)
