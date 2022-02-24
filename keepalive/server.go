@@ -30,6 +30,9 @@ func RunServer(done context.Context) {
 	// 检查间隔
 	unix.SetsockoptInt(int(f.Fd()), unix.IPPROTO_TCP, unix.TCP_KEEPINTVL, 10)
 
+	// 检查次数
+	unix.SetsockoptInt(int(f.Fd()), unix.IPPROTO_TCP, unix.TCP_KEEPCNT, 1)
+
 	// 等待退出
 	<-done.Done()
 	log.Printf("Server Exit!")
