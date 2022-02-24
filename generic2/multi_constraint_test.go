@@ -88,10 +88,10 @@ func TestAnyConvertFunc(t *testing.T) {
 		srcA[i].Name = strconv.Itoa(i)
 	}
 	t.Logf("%+v", srcA)
-	var srcB = AnyConvertFunc[*StructA, *StructB, ConvertFunc[*StructA, *StructB]](a2b, srcA...)
+	var srcB = AnyConvertFunc(a2b, srcA...)
 	t.Logf("%+v", srcB)
-	var srcC = AnyConvertFunc[*StructB, *StructC, ConvertFunc[*StructB, *StructC]](b2c, srcB...)
+	var srcC = AnyConvertFunc(b2c, srcB...)
 	t.Logf("%+v", srcC)
-	srcA = AnyConvertFunc[*StructC, *StructA, ConvertFunc[*StructC, *StructA]](c2a, srcC...)
+	srcA = AnyConvertFunc(c2a, srcC...)
 	t.Logf("%+v", srcA)
 }
