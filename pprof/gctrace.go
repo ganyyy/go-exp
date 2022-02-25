@@ -6,6 +6,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -27,11 +28,18 @@ func main() {
 	var base, _ = os.Getwd()
 	log.Println(base)
 
-	defer (&CPUProfile{}).Init(base + "/cpu.pprof").Start().Done()
-	defer (&MemProfile{}).Init(base + "/mem.pprof").Start().Done()
-	defer (&HTTPProfile{}).Init("localhost:9999").Start().Done()
+	var cpu CPUProfile
+	var mem MemProfile
+	var h HTTPProfile
 
+	defer Run(&cpu, base+"/cpu.pprof")()
+	defer Run(&mem, base+"/mem.pprof")()
+	defer Run(&h, "localhost:8899")()
+
+	var wait sync.WaitGroup
+	wait.Add(1)
 	go func() {
+		defer wait.Done()
 		for i := 0; i < 10; i++ {
 			var ret = alloc()
 			log.Println(ret)
@@ -41,5 +49,5 @@ func main() {
 		_ = http.ListenAndServe(":9999", nil)
 	}()
 
-	time.Sleep(time.Minute * 5)
+	wait.Wait()
 }

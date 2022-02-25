@@ -9,6 +9,16 @@ import (
 	"syscall"
 )
 
+type ProfileMonitor2[T any] interface {
+	Init(path string) T
+	Start() T
+	Done()
+}
+
+func Run[T ProfileMonitor2[T]](p T, path string) func() {
+	return p.Init(path).Start().Done
+}
+
 type ProfileMonitor interface {
 	Init(path string) ProfileMonitor
 	Start() ProfileMonitor
@@ -34,12 +44,12 @@ type CPUProfile struct {
 	ProfileBase
 }
 
-func (c *CPUProfile) Init(path string) ProfileMonitor {
+func (c *CPUProfile) Init(path string) *CPUProfile {
 	c.ProfileBase.Init(path)
 	return c
 }
 
-func (c *CPUProfile) Start() ProfileMonitor {
+func (c *CPUProfile) Start() *CPUProfile {
 	var err = pprof.StartCPUProfile(c.f)
 	if err != nil {
 		panic("Start CPU Profile error :%v")
@@ -56,12 +66,12 @@ type MemProfile struct {
 	ProfileBase
 }
 
-func (m *MemProfile) Init(path string) ProfileMonitor {
+func (m *MemProfile) Init(path string) *MemProfile {
 	m.ProfileBase.Init(path)
 	return m
 }
 
-func (m *MemProfile) Start() ProfileMonitor {
+func (m *MemProfile) Start() *MemProfile {
 	return m
 }
 
@@ -73,12 +83,12 @@ type HTTPProfile struct {
 	addr string
 }
 
-func (h *HTTPProfile) Init(addr string) ProfileMonitor {
+func (h *HTTPProfile) Init(addr string) *HTTPProfile {
 	h.addr = addr
 	return h
 }
 
-func (h *HTTPProfile) Start() ProfileMonitor {
+func (h *HTTPProfile) Start() *HTTPProfile {
 	go func() {
 		if err := http.ListenAndServe(h.addr, nil); err != nil {
 			panic(err)
