@@ -16,9 +16,13 @@ require (
 
 require (
 	github.com/bytedance/gopkg v0.0.0-20210705062217-74c74ebadcae // indirect
+	github.com/google/flatbuffers v1.12.0 // indirect
 	github.com/huandu/go-tls v1.0.1 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.4 // indirect
 	golang.org/x/arch v0.0.0-20210901143047-ebb09ed340f1 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gorm.io/gorm v1.23.1 // indirect
 )
 
 require (
@@ -29,6 +33,7 @@ require (
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
+	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
@@ -45,4 +50,5 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
+	gorm.io/driver/mysql v1.3.2
 )
