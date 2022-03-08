@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main</title>
+</head>
+<body>
+<h1>输入测试内容</h1>
+<form action="/content" method="post">
+    <label for="text">输入内容:<input type="text" name="content"></label><br><br>
+    <input type="submit" value="提交">
+</form>
+
+<h2>当前内容</h2>
+<text>
+    {{.content}}
+</text>
+
+</body>
+</html>
