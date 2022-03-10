@@ -14,7 +14,7 @@ var (
 )
 
 func OpenMySQL() error {
-	db, err := sql.Open("mysql", "root:123456@tcp(localhost:3306)/go_test?parseTime=true")
+	db, err := sql.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/go_test?parseTime=true")
 
 	if err != nil {
 		return err

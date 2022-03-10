@@ -1,3 +1,5 @@
+//go:build linux
+
 package main
 
 import (
@@ -31,7 +33,8 @@ func main() {
 	syscall.Umask(0)
 
 	// 关闭文件描述符
-	for i := 0; i < syscall.Getdtablesize(); i++ {
+	// 就这么关吧..
+	for i := 0; i < 3; i++ {
 		syscall.Close(i)
 	}
 
