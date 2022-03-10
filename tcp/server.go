@@ -1,11 +1,13 @@
+//go:build ignore
 // +build ignore
 
 package main
 
 import (
-	"go-exp/helper"
 	"log"
 	"net"
+
+	"ganyyy.com/go-exp/helper"
 )
 
 func main() {

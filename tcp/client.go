@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"time"
 
-	"go-exp/helper"
+	"ganyyy.com/go-exp/helper"
 )
 
 func main() {
