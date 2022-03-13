@@ -3,7 +3,7 @@ package sync_map_test
 import (
 	"testing"
 
-	"ganyyy.com/go-exp/generic_func/sync_map"
+	"ganyyy.com/go-exp/container/sync_map"
 	"github.com/stretchr/testify/assert"
 )
 
