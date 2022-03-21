@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"sync"
 	"testing"
+	"time"
 )
 
 type readParam struct {
@@ -104,4 +105,28 @@ func TestParallelReadMap(t *testing.T) {
 	wait.Wait()
 
 	close(done)
+}
+
+func TestParallelSlice(t *testing.T) {
+	rand.Seed(time.Now().UnixNano())
+	var src = make([]int, rand.Intn(10)+2)
+	for i := range src {
+		src[i] = i
+	}
+	// 神奇吧, 这样竟然没事
+	t.Run("slice", func(t *testing.T) {
+		var f = func(src []int) {
+			go func() {
+				time.Sleep(time.Second)
+				src = src[:2]
+			}()
+
+			for i, v := range src {
+				t.Log(i, v, src)
+				time.Sleep(time.Millisecond * 500)
+			}
+		}
+
+		f(src)
+	})
 }

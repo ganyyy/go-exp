@@ -86,8 +86,8 @@ func Add2(a, b fmt.Stringer) string {
 func main() {
 
 	var a = "sss"
-	var ret = GetOrDefault[int](a, 100)
-	var ret2 = GetOrDefault[string](a, "123131")
+	var ret = GetOrDefault(a, 100)
+	var ret2 = GetOrDefault(a, "123131")
 
 	println(ret, ret2)
 
@@ -99,12 +99,12 @@ func main() {
 	println(Add2(myInt(10), myString("20")))
 
 	var src = []int{1, 2, 3, 4, 5, 6}
-	fmt.Println(Map[int](src, func(t int) int {
+	fmt.Println(Map(src, func(t int) int {
 		return t + 10
 	}))
 
-	var tmp = pack[int](1, 2, 3, 4, 5, 6, 7)
-	var tmp2 = pack[string]("123", "1234", "1235")
+	var tmp = pack(1, 2, 3, 4, 5, 6, 7)
+	var tmp2 = pack("123", "1234", "1235")
 	fmt.Println(tmp, tmp2)
 	var s set[int] = make(map[int]struct{})
 	var s2 set[string] = make(map[string]struct{})
@@ -112,4 +112,14 @@ func main() {
 	s2.pack(tmp2...)
 	fmt.Println(s, s2)
 	fmt.Println(s.unpack(), s2.unpack())
+}
+
+type Comparable[T comparable] interface {
+	ComparableTo(T) int
+}
+
+type MyInt int
+
+func (i MyInt) ComparableTo(i2 MyInt) int {
+	return int(i - i2)
 }
