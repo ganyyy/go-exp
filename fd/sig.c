@@ -1,3 +1,5 @@
+//go:build ignore
+
 #include <sys/signalfd.h>
 #include <signal.h>
 #include <unistd.h>

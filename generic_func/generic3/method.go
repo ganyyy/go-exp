@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"runtime/debug"
 	"sync/atomic"
 	"time"
 )
@@ -21,6 +22,7 @@ type Method interface {
 
 	Init(Module) error
 	Do()
+	Done()
 }
 
 type Code uint32
@@ -29,6 +31,7 @@ const (
 	CodeNo Code = iota
 	CodeAddTimeout
 	CodeWaitTimeout
+	CodeModuleNotMatch
 )
 
 type SyncMethod Method
@@ -78,16 +81,18 @@ type BaseMethod[T Module] struct {
 func (b *BaseMethod[T]) Init(t Module) error {
 	var m, ok = t.(T)
 	if !ok {
-
+		b.SetCode(CodeModuleNotMatch)
+		b.Done()
 	}
 	b.module = m
 	return nil
 }
 func (b *BaseMethod[T]) GetModule() T { return b.module }
+func (b *BaseMethod[T]) Done()        {}
 
 type BaseSyncMethod[M Module, T any] struct {
-	SyncMethod
 	BaseMethod[M]
+	rsp     T
 	rspChan chan T
 }
 
@@ -109,11 +114,15 @@ func (b *BaseSyncMethod[M, T]) Resp() (T, error) {
 
 	select {
 	case t := <-b.rspChan:
-		return t, nil
+		return t, b.Error()
 	case <-ctx.Done():
 		var empty T
 		return empty, ErrWaitTimeout
 	}
+}
+
+func (b *BaseSyncMethod[M, T]) Done() {
+	b.SetResp(b.rsp)
 }
 
 type BaseAsyncMethod[M Module] struct {
@@ -159,10 +168,20 @@ func (m *MyModule) Run() {
 			case <-m.closeChan:
 				return
 			case cmd := <-m.commendChan:
-				if !cmd.CheckCode(CodeNo) {
-					continue
-				}
-				cmd.Do()
+				func() {
+					defer func() {
+						if err := recover(); err != nil {
+							log.Println(string(debug.Stack()))
+						}
+					}()
+					log.Printf("%+v", cmd)
+					defer cmd.Done()
+					if !cmd.CheckCode(CodeNo) {
+						return
+					}
+					cmd.Do()
+				}()
+
 			}
 		}
 	}()
@@ -173,16 +192,15 @@ func (m *MyModule) Init() {
 }
 
 type MyReq struct {
-	BaseSyncMethod[*MyModule, *MyResp]
+	BaseSyncMethod[*MyModule, MyResp]
 	Name string
 }
 
 func (m *MyReq) Do() {
-	var rsp MyResp
+	var rsp = &m.rsp
 	rsp.Name = m.Name + m.GetModule().name
 	rsp.Age = 100
 
-	m.SetResp(&rsp)
 }
 
 type MyResp struct {

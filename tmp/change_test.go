@@ -11,7 +11,8 @@ import (
 func TestNilSlice(t *testing.T) {
 	var s1 = make([]int, 0)
 	var s2 []int
-	var s3 = *(*[]int)(unsafe.Pointer(&reflect.SliceHeader{}))
+	var header = (*reflect.SliceHeader)(unsafe.Pointer(&s2))
+	var s3 = *(*[]int)(unsafe.Pointer(header))
 
 	assert.Equal(t, s2, s3)
 	assert.NotEqual(t, s1, s2)

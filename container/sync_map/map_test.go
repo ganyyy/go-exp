@@ -1,6 +1,7 @@
 package sync_map_test
 
 import (
+	"math"
 	"testing"
 
 	"ganyyy.com/go-exp/container/sync_map"
@@ -57,5 +58,26 @@ func TestSyncMap(t *testing.T) {
 		return true
 	})
 	assert.Equal(t, 0, len(check))
+
+}
+
+func TestNaNMap(t *testing.T) {
+	var m = sync_map.NewSyncMap[float64, string]()
+
+	m.Store(math.NaN(), "100")
+	m.Store(math.NaN(), "200")
+	m.Store(math.NaN(), "300")
+	m.Store(math.NaN(), "400")
+	m.Store(math.NaN(), "500")
+	m.Store(math.NaN(), "600")
+	m.Store(math.NaN(), "700")
+	m.Store(math.NaN(), "800")
+
+	m.Delete(math.NaN())
+
+	m.Range(func(f float64, s string) bool {
+		t.Logf("%v, %v, %v", f, s, math.IsNaN(f))
+		return true
+	})
 
 }
