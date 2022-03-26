@@ -7,10 +7,10 @@ cmd/compile/internal/ir/cfg.go
 
 
 单个对象的分配大小
-MaxStackVarSize = 10 * 1024 * 1024
+MaxStackVarSize = 10 * 1024 * 1024 = 10M
 
 使用new/&/make/[]byte("") 创建的对象大小
-MaxImplicitStackVarSize = 64 * 1024
+MaxImplicitStackVarSize = 64 * 1024 = 64KB
 
 
 
