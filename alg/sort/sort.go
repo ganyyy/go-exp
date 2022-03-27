@@ -91,10 +91,10 @@ func QuickSort(arr []int) {
 
 	/*
 		是否稳定: 不稳定. 最后一波交换位置可能会互换
-		最好时间复杂度: O(nlogn),
-		平均时间复杂度: O(nlogn),
+		最好时间复杂度: O(n log(n)),
+		平均时间复杂度: O(n log(n)),
 		最坏时间复杂度: O(n^2)
-		空间复杂度: O(logn)~O(n)
+		空间复杂度: O(log(n))~O(n)
 	*/
 
 	var sort func(int, int)
@@ -107,21 +107,20 @@ func QuickSort(arr []int) {
 		var pivot = arr[left]
 
 		// 通过双指针 确定分区分界点
-		var idx = left + 1
+		var idx = left
 		for i := left + 1; i <= right; i++ {
 			if arr[i] < pivot {
-				arr[i], arr[idx] = arr[idx], arr[i]
 				idx++
+				arr[i], arr[idx] = arr[idx], arr[i]
 			}
 		}
 
 		// 将基准点放置到合适的位置上
-		// 因为idx是下一个要放置的位置, 所以-1才是 <= pivot 的数字所处的位置
-		arr[left], arr[idx-1] = arr[idx-1], arr[left]
+		arr[left], arr[idx] = arr[idx], arr[left]
 
 		// 针对左半部分和右半部分进行排序
-		sort(left, idx-2)
-		sort(idx, right)
+		sort(left, idx-1)
+		sort(idx+1, right)
 	}
 
 	sort(0, len(arr)-1)
@@ -222,7 +221,7 @@ func HeapSort(arr []int) {
 		return
 	}
 
-	var heapify = func(idx int) {
+	var heap = func(idx int) {
 		var parent = idx
 		for {
 			var child = parent*2 + 1
@@ -247,7 +246,7 @@ func HeapSort(arr []int) {
 	// 从中间节点开始, 构建小顶堆
 	// 将整个数组看成是一个完全二叉树
 	for i := length/2 - 1; i >= 0; i-- {
-		heapify(i)
+		heap(i)
 	}
 
 	// 堆头就是最小值, 然后递归找出接下来的最小值
