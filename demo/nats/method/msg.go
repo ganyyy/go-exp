@@ -8,11 +8,6 @@ const (
 	PushValue = "PushValue"
 )
 
-const (
-	requestSubject  = "req"
-	responseSubject = "rsp"
-)
-
 type MethReqTime struct {
 	Time int64
 }
@@ -35,12 +30,4 @@ type PushTimeParam struct {
 
 type PushValParam struct {
 	Val int64
-}
-
-func GenRequestSubject(subject string) string {
-	return requestSubject + ":" + subject
-}
-
-func GenPushSubject(subject string) string {
-	return responseSubject + ":" + subject
 }

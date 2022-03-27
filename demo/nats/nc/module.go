@@ -9,6 +9,27 @@ var (
 	ErrServiceNotInit = errors.New("server not initial")
 )
 
+const (
+	reqSubject  = "req"
+	pushSubject = "psh"
+)
+
+func GenRequestSubject(subject string) string {
+	return reqSubject + ":" + subject
+}
+
+func GenPushSubject(subject string) string {
+	return pushSubject + ":" + subject
+}
+
+func GenClientSubject(subject string) (string, string) {
+	return GenRequestSubject(subject), GenPushSubject(subject)
+}
+
+func GenServerSubject(subject string) (string, string) {
+	return GenPushSubject(subject), GenRequestSubject(subject)
+}
+
 type PushCallBack func(msg NatsMessage)
 
 type NatsService struct {
@@ -19,7 +40,17 @@ type NatsService struct {
 	done       func()
 }
 
-func NewNatsServiceModule(group, req, receive string) (*NatsService, error) {
+func NewNatsServer(group, subject string) (*NatsService, error) {
+	var req, receive = GenServerSubject(subject)
+	return NewNatsService(group, req, receive)
+}
+
+func NewNatsClient(group, subject string) (*NatsService, error) {
+	var req, receive = GenClientSubject(subject)
+	return NewNatsService(group, req, receive)
+}
+
+func NewNatsService(group, req, receive string) (*NatsService, error) {
 	var msgChan, cancel, err = defaultClient.Subcribe(group, receive)
 	if err != nil {
 		return nil, err

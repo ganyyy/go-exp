@@ -23,7 +23,7 @@ func main() {
 	}
 	defer nc.Stop()
 
-	var service, err = nc.NewNatsServiceModule("1", method.TestReq, method.TestPush)
+	var service, err = nc.NewNatsClient("1", method.TestSubject)
 	if err != nil {
 		panic(err)
 	}
