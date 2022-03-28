@@ -68,7 +68,11 @@ require (
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce // indirect
 	golang.org/x/exp v0.0.0-20220218215828-6cf2b201936e
+<<<<<<< HEAD
 	golang.org/x/net v0.0.0-20220325170049-de3da57026de // indirect
+=======
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
+>>>>>>> f597a63... slice, null struct
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

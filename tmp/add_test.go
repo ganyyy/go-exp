@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -69,4 +70,18 @@ func TestContextWithValue(t *testing.T) {
 	bs, _ = json.Marshal(context.TODO())
 	t.Logf("%v", string(bs))
 
+}
+
+type NullStruct struct {
+	a int
+	b int
+	c int
+}
+
+func (m *NullStruct) method(t *testing.T) {
+	t.Logf("null struct function %+v", m)
+}
+
+func TestNullMethod(t *testing.T) {
+	(*NullStruct)(unsafe.Pointer((*bool)(nil))).method(t)
 }
