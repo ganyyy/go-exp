@@ -2,11 +2,10 @@ package main
 
 import (
 	"log"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
 	"runtime"
-	"sync"
 	"time"
 )
 
@@ -15,7 +14,6 @@ func alloc() int {
 	runtime.SetFinalizer(&m, func(obj interface{}) {
 		log.Println("Finalizer m")
 	})
-	time.Sleep(time.Second)
 	runtime.KeepAlive(m)
 	return 0
 }
@@ -36,18 +34,18 @@ func main() {
 	defer Run(&mem, base+"/mem.pprof")()
 	defer Run(&h, "localhost:8899")()
 
-	var wait sync.WaitGroup
-	wait.Add(1)
-	go func() {
-		defer wait.Done()
-		for i := 0; i < 10; i++ {
+	var sigChan = make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
+	var tick = time.NewTicker(time.Second)
+	defer tick.Stop()
+	for {
+		select {
+		case <-tick.C:
 			var ret = alloc()
 			log.Println(ret)
+		case <-sigChan:
+			log.Println("[WRN] stop")
+			return
 		}
-	}()
-	go func() {
-		_ = http.ListenAndServe(":9999", nil)
-	}()
-
-	wait.Wait()
+	}
 }
