@@ -4,68 +4,135 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"runtime/debug"
+	"sync/atomic"
 	"time"
 )
 
-type Method interface {
-	Init(Module) error
-	Wait(ctx context.Context) error
-	Done()
-	Do()
+type ErrorMsg interface {
+	Code() Code
+	CheckCode(code Code) bool
+	SetCode(code Code) bool
+	SetError(code Code, err interface{}) bool
+	Error() error
 }
+
+type Method interface {
+	ErrorMsg
+
+	Init(Module) error
+	Do()
+	Done()
+}
+
+type Code = uint32
+
+const (
+	CodeNo Code = iota
+	CodeAddTimeout
+	CodeWaitTimeout
+	CodeModuleNotMatch
+)
 
 type SyncMethod Method
 type AsyncMethod Method
 
 type Module interface {
-	AddTask(req Method) error
+	AddTask(req Method)
+}
+
+type Base struct {
+	msg  interface{}
+	code Code
+}
+
+func (b *Base) Code() Code {
+	return Code(atomic.LoadUint32((*uint32)(&b.code)))
+}
+
+func (b *Base) CheckCode(code Code) bool {
+	return b.Code() == code
+}
+
+func (b *Base) SetCode(code Code) bool {
+	return atomic.CompareAndSwapUint32((*uint32)(&b.code), uint32(CodeNo), uint32(code))
+}
+
+func (b *Base) SetError(code Code, err interface{}) bool {
+	if !b.SetCode(code) {
+		return false
+	}
+	b.msg = err
+	return true
+}
+
+func (b *Base) Error() error {
+	if b.CheckCode(CodeNo) {
+		return nil
+	}
+	return fmt.Errorf("<code %v, err %v>", b.code, b.msg)
 }
 
 type BaseMethod[T Module] struct {
+	Base
 	module T
 }
 
 func (b *BaseMethod[T]) Init(t Module) error {
 	var m, ok = t.(T)
 	if !ok {
-
+		b.SetCode(CodeModuleNotMatch)
+		b.Done()
 	}
 	b.module = m
 	return nil
 }
-func (b *BaseMethod[T]) Wait(ctx context.Context) error { return nil }
-func (b *BaseMethod[T]) Done()                          {}
-func (b *BaseMethod[T]) GetModule() T                   { return b.module }
+func (b *BaseMethod[T]) GetModule() T { return b.module }
+func (b *BaseMethod[T]) Done()        {}
 
 type BaseSyncMethod[M Module, T any] struct {
 	BaseMethod[M]
-	done chan struct{}
-	rsp  T
+	rsp     T
+	rspChan chan T
 }
 
 func (b *BaseSyncMethod[M, T]) Init(t Module) error {
 	if err := b.BaseMethod.Init(t); err != nil {
 		return err
 	}
-	b.done = make(chan struct{})
+	b.rspChan = make(chan T, 1)
 	return nil
 }
 
-func (b *BaseSyncMethod[M, T]) Wait(ctx context.Context) error {
+func (b *BaseSyncMethod[M, T]) GenResp() *T {
+	return &b.rsp
+}
+
+func (b *BaseSyncMethod[M, T]) SetResp(resp T) {
 	select {
-	case <-b.done:
-		return nil
+	case b.rspChan <- resp:
+	default:
+	}
+}
+
+func (b *BaseSyncMethod[M, T]) Resp() (T, error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	return b.RespWithContext(ctx)
+}
+
+func (b *BaseSyncMethod[M, T]) RespWithContext(ctx context.Context) (T, error) {
+	select {
+	case rsp := <-b.rspChan:
+		return rsp, b.Error()
 	case <-ctx.Done():
-		return ErrWaitTimeout
+		var empty T
+		return empty, ErrWaitTimeout
 	}
 }
 
 func (b *BaseSyncMethod[M, T]) Done() {
-	close(b.done)
-}
-
-func (b *BaseSyncMethod[M, T]) Resp() *T {
-	return &b.rsp
+	b.SetResp(b.rsp)
 }
 
 type BaseAsyncMethod[M Module] struct {
@@ -84,22 +151,21 @@ var (
 	ErrWaitTimeout = fmt.Errorf("wait task timeout")
 )
 
-func (m *MyModule) AddTask(req Method) error {
+func (m *MyModule) AddTask(req Method) {
 	if err := req.Init(m.worker); err != nil {
-		return err
+		req.SetCode(CodeModuleNotMatch)
+		req.Done()
+		return
 	}
-	var ctx, cancel = context.WithTimeout(context.TODO(), time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	select {
 	case m.commendChan <- req:
 	case <-ctx.Done():
-		return ErrAddTimeout
+		req.SetError(CodeAddTimeout, ErrAddTimeout)
+		req.Done()
 	}
-	if err := req.Wait(ctx); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (m *MyModule) Run() {
@@ -113,8 +179,20 @@ func (m *MyModule) Run() {
 			case <-m.closeChan:
 				return
 			case cmd := <-m.commendChan:
-				cmd.Do()
-				cmd.Done()
+				func() {
+					defer func() {
+						if err := recover(); err != nil {
+							log.Println(string(debug.Stack()))
+						}
+						cmd.Done()
+					}()
+					log.Printf("%+v", cmd)
+					if !cmd.CheckCode(CodeNo) {
+						return
+					}
+					cmd.Do()
+				}()
+
 			}
 		}
 	}()
@@ -130,23 +208,25 @@ type MyReq struct {
 }
 
 func (m *MyReq) Do() {
-	var rsp = m.Resp()
+	var rsp = m.GenResp()
 	rsp.Name = m.Name + m.GetModule().name
 	rsp.Age = 100
+
 }
 
 type MyResp struct {
+	Base
 	Name string
 	Age  int
 }
 
 type MyAsyncReq struct {
 	BaseAsyncMethod[*MyModule]
-	Haha string
+	Lala string
 }
 
 func (m *MyAsyncReq) Do() {
 	var mm = m.GetModule()
-	log.Println(mm.name + " " + m.Haha)
+	log.Println(mm.name + " " + m.Lala)
 
 }
