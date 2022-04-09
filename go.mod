@@ -47,9 +47,11 @@ require (
 )
 
 require (
+	github.com/BurntSushi/toml v1.1.0
 	github.com/cloudwego/netpoll v0.1.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deathowl/go-metrics-prometheus v0.0.0-20200518174047-74482eab5bfb
+	github.com/getsentry/sentry-go v0.13.0
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-kiss/monkey v0.0.0-20210912230757-40cda447d0e3
 	github.com/go-playground/locales v0.13.0 // indirect
