@@ -27,7 +27,14 @@ func TestCodec(t *testing.T) {
 	var v Value
 	assert.Nil(t, decoder.Decode(&v))
 
-	t.Logf("%+v", v)
+	encoder.Encode([]int{1, 0, 0, 0, 0, 2})
+	var arr []int
+
+	t.Logf("[%v]", buf.Bytes())
+
+	decoder.Decode(&arr)
+
+	t.Logf("%+v, %+v", v, arr)
 }
 
 type MyLocker struct {

@@ -52,9 +52,13 @@ func main() {
 		}
 
 		var pipeline = client.Pipeline()
+		defer pipeline.Close()
+		var args = make([]interface{}, 0, len(m)<<1)
 		for key, val := range m {
-			pipeline.HSet(ctx, *Key, key, val)
+			args = append(args, key, val)
 		}
+		pipeline.HMSet(ctx, *Key, args...)
+
 		_, err = pipeline.Exec(ctx)
 		if err != nil {
 			panic(err)
