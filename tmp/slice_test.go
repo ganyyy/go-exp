@@ -35,3 +35,20 @@ func TestReslice(t *testing.T) {
 
 	time.Sleep(time.Second * time.Duration(len(src)))
 }
+
+func TestNilStruct(t *testing.T) {
+
+	func() {
+		defer func() {
+			t.Log(recover())
+		}()
+		var n *NilStruct2
+		t.Logf("%+v", n.GetName())
+	}()
+
+	func() {
+		var n = new(NilStruct2)
+		t.Logf(n.GetName())
+	}()
+
+}
