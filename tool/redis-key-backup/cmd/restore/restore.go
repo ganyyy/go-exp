@@ -31,7 +31,7 @@ func Restore(ctx *cli.Context) {
 	if fromTerminal {
 		_, err = fmt.Scan(&data)
 		if err != nil {
-			panic(fmt.Sprintf("scan from input error:%w", err))
+			panic(fmt.Errorf("scan from input error:%w", err))
 		}
 	} else if fromFile != "" {
 		data, err = api.ReadFromFile(fromFile)

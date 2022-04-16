@@ -1,5 +1,3 @@
-//go:build ignore
-
 package main
 
 import "unsafe"
@@ -68,8 +66,4 @@ func StackOver() {
 
 	_ = tt[0]
 	println("a:%v, %p", a, (unsafe.Pointer(&a)))
-}
-
-func main() {
-	StackOver()
 }
