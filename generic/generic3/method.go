@@ -32,6 +32,7 @@ const (
 	CodeAddTimeout
 	CodeWaitTimeout
 	CodeModuleNotMatch
+	CodeInner
 )
 
 type SyncMethod Method
@@ -183,6 +184,7 @@ func (m *MyModule) Run() {
 					defer func() {
 						if err := recover(); err != nil {
 							log.Println(string(debug.Stack()))
+							cmd.SetError(CodeInner, err)
 						}
 						cmd.Done()
 					}()

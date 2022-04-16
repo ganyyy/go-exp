@@ -7,6 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type MyPanicTask struct {
+	BaseSyncMethod[*MyModule, MyResp]
+}
+
+func (m *MyPanicTask) Do() {
+	var rsp = m.GenResp()
+	rsp.Age = 100
+	panic("rand panic!")
+}
+
 func TestCommandSync(t *testing.T) {
 	var req = MyReq{
 		Name: "12313",
@@ -24,8 +34,13 @@ func TestCommandSync(t *testing.T) {
 
 	assert.Equal(t, rsp.Name, "12313112233")
 
+	var req2 MyPanicTask
+	m.AddTask(&req2)
+	rsp, err = req2.Resp()
+	assert.NotNil(t, err)
+	t.Logf("panic %+v", rsp)
+
 	m.AddTask(&MyAsyncReq{Lala: "2131231"})
-	assert.Nil(t, err)
 	time.Sleep(time.Second)
 }
 

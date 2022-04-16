@@ -35,3 +35,30 @@ func (p *PointerStruct2) SetValue(v []byte) {
 func (p *PointerStruct2) String() string {
 	return fmt.Sprintf("%X", p.UintPtr)
 }
+
+//go:noinline
+func NewPointStruct() *PointerStruct {
+	return &PointerStruct{}
+}
+
+//go:noinline
+func NewPointStruct2() *PointerStruct2 {
+	return &PointerStruct2{}
+}
+
+func Pointer() {
+	var i struct {
+		_ int
+		p *PointerStruct
+	}
+	var i2 PointerStruct2
+
+	var pi = NewPointStruct()
+	var pi2 = NewPointStruct2()
+
+	i.p = pi
+	i2.UintPtr = pi2.UintPtr
+
+	_ = i
+	_ = i2
+}
