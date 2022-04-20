@@ -3,5 +3,6 @@ go 1.18
 
 use (
     .
+    ./tool/p2p
     ./tool/redis-key-backup
 )
