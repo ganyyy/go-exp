@@ -5,24 +5,22 @@ import (
 )
 
 /*
-!5xkwvz=3-d4f+_^@ow4)eguq5=duhbm=#ppu=h5eusesdtt)p
-*/
 
-func InitSentry() {
+ */
+
+func init() {
 	sentry.Init(sentry.ClientOptions{
-		Dsn:              "",
+		Dsn:              "http://4d15e2eafc9749a8affa15afdc99a10f@localhost:9000/2",
 		Debug:            false,
-		AttachStacktrace: false,
+		AttachStacktrace: true,
 		SampleRate:       0,
 		TracesSampleRate: 0,
 		TracesSampler:    nil,
+		IgnoreErrors:     []string{},
 		DebugWriter:      nil,
 		Transport:        nil,
 		ServerName:       "",
 		Release:          "",
 		Dist:             "",
-		Environment:      "",
-		MaxBreadcrumbs:   0,
 	})
-
 }
