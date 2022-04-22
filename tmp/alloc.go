@@ -39,8 +39,8 @@ func main() {
 	var aa StuPtr
 	var ba = StuPtr{}
 
-	var a = new(int)
-	runtime.SetFinalizer(a, func(val interface{}) {
+	var pa = new(int)
+	runtime.SetFinalizer(pa, func(val interface{}) {
 
 	})
 

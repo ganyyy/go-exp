@@ -9,11 +9,16 @@ import (
 func Test(t *testing.T) {
 	var lock sync.RWMutex
 
+	var start = time.Now()
+	var logf = func(info string) {
+		t.Logf("nowt %v, %s", time.Now().Sub(start), info)
+	}
+
 	go func() {
 		lock.RLock()
 		defer lock.RUnlock()
 		time.Sleep(time.Millisecond * 300)
-		t.Logf("r l 1")
+		logf("r l 1")
 	}()
 
 	go func() {
@@ -21,7 +26,7 @@ func Test(t *testing.T) {
 		lock.RLock()
 		defer lock.RUnlock()
 		time.Sleep(time.Millisecond * 400)
-		t.Logf("r l 2")
+		logf("r l 2")
 	}()
 
 	go func() {
@@ -29,7 +34,7 @@ func Test(t *testing.T) {
 		lock.Lock()
 		defer lock.Unlock()
 		time.Sleep(time.Millisecond * 200)
-		t.Logf("l 1")
+		logf("l 1")
 	}()
 
 	go func() {
@@ -37,7 +42,7 @@ func Test(t *testing.T) {
 		lock.RLock()
 		defer lock.RUnlock()
 		time.Sleep(time.Millisecond * 100)
-		t.Logf("r l 3")
+		logf("r l 3")
 	}()
 
 	time.Sleep(time.Second * 1)
