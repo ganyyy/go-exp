@@ -1,0 +1,8 @@
+package fuzzing
+
+func CompareString(a, b string) bool {
+	if len(a) != len(b) {
+		return len(a) < len(b)
+	}
+	return a < b
+}

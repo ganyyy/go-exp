@@ -48,7 +48,7 @@ type Base struct {
 }
 
 func (b *Base) Code() Code {
-	return Code(atomic.LoadUint32((*uint32)(&b.code)))
+	return atomic.LoadUint32(&b.code)
 }
 
 func (b *Base) CheckCode(code Code) bool {
@@ -56,7 +56,7 @@ func (b *Base) CheckCode(code Code) bool {
 }
 
 func (b *Base) SetCode(code Code) bool {
-	return atomic.CompareAndSwapUint32((*uint32)(&b.code), uint32(CodeNo), uint32(code))
+	return atomic.CompareAndSwapUint32(&b.code, CodeNo, code)
 }
 
 func (b *Base) SetError(code Code, err interface{}) bool {
@@ -190,6 +190,7 @@ func (m *MyModule) Run() {
 					}()
 					log.Printf("%+v", cmd)
 					if !cmd.CheckCode(CodeNo) {
+						// 这里有问题, 但是协作式无法处理, 除非加一个rollback
 						return
 					}
 					cmd.Do()
