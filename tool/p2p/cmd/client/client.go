@@ -83,7 +83,9 @@ func Client(ctx *cli.Context) {
 				case msg.MsgReply:
 					log.Warnf("Peer(%s) replied, you can talk now.", addr.String())
 				case msg.MsgPing:
+					//TODO 实现心跳机制
 				case msg.MsgPunch:
+					//TODO 实现去中心化(?)
 				}
 			}
 		}, done)

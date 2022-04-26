@@ -27,3 +27,16 @@ func TestMonkeyAdd(t *testing.T) {
 
 	assert.Equal(t, a+b, monkey_patch.Add(a, b))
 }
+
+func TestMonkeyMethod(t *testing.T) {
+
+	{
+		var patch = monkey.Patch((*monkey_patch.Runnable).SetAAA, func(_ *monkey_patch.Runnable, v int) {
+			t.Logf("%d", v)
+		})
+		defer patch.Unpatch()
+
+		var runner monkey_patch.Runnable
+		runner.SetAAA(100)
+	}
+}
