@@ -13,8 +13,8 @@ const (
 	FileFull   = "file, f"   // 指定文件输入
 	Input      = "input"     // 指定控制台输入
 	InputFull  = "input, i"  // 指定控制台输入
-	Output     = "output"    //  指定控制台输出
-	OutputFull = "output, o" //  指定控制台输出
+	Output     = "output"    // 指定控制台输出
+	OutputFull = "output, o" // 指定控制台输出
 )
 
 const (
