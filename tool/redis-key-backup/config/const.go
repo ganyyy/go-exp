@@ -20,6 +20,7 @@ const (
 const (
 	TypeString = "string"
 	TypeHMap   = "hash"
-	TypeZSet   = "zset" // todo
+	TypeZSet   = "zset"
+	TypeList   = "list"
 	// ... etc
 )

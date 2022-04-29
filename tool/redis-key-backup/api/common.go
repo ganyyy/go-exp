@@ -60,8 +60,15 @@ func BytesToString(b []byte) string {
 }
 
 func GetKeyType(key string) (string, error) {
-	var client = config.GetClient()
-	return client.Type(context.Background(), key).Result()
+	return config.GetClient().Type(context.Background(), key).Result()
+}
+
+func KeyExists(key string) (bool, error) {
+	n, err := config.GetClient().Exists(context.Background(), key).Result()
+	if checkRedisError(err) != nil {
+		return false, err
+	}
+	return n == 1, nil
 }
 
 func ExportToFile(path, data string) error {
@@ -93,11 +100,20 @@ func (s *SaveStruct) FromVal(val string) error {
 
 func (s *SaveStruct) DoDump(key string) (err error) {
 	var keyType string
-	keyType, err = GetKeyType(key)
-	s.OldKey = key
+	var exists bool
+	exists, err = KeyExists(key)
 	if err != nil {
 		return
 	}
+	if !exists {
+		return redis.Nil
+	}
+
+	keyType, err = GetKeyType(key)
+	if err != nil {
+		return
+	}
+	s.OldKey = key
 	s.KeyType = keyType
 	operation, err := GetOperation(keyType)
 	if err != nil {
@@ -112,9 +128,33 @@ func (s *SaveStruct) DoDump(key string) (err error) {
 }
 
 func (s SaveStruct) DoRestore(key string) error {
+	var exists, err = KeyExists(key)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New(fmt.Sprintf("key %v exists", key))
+	}
+
 	operation, err := GetOperation(s.KeyType)
 	if err != nil {
 		return err
 	}
 	return operation.Restore(config.GetClient(), key, s.Val)
 }
+
+func checkRedisError(err error) error {
+	if err == redis.Nil {
+		return nil
+	}
+	return err
+}
+
+type zSetElement struct {
+	Mem   string  `json:"m"`
+	Score float64 `json:"s"`
+}
+
+type zSetElements []zSetElement
+
+type listElements []string

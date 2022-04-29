@@ -51,7 +51,7 @@ var InputFlag = []cli.Flag{
 	},
 }
 
-var Config RedisConnect
+var redisConfig RedisConnect
 
 func Init(cmd *cli.Context) {
 	if err := parse(cmd); err != nil {
@@ -70,9 +70,9 @@ func parse(cmd *cli.Context) error {
 	var auth = cmd.String(Auth)
 	var db = cmd.Int(DB)
 
-	Config.Host = host
-	Config.Auth = auth
-	Config.DB = db
+	redisConfig.Host = host
+	redisConfig.Auth = auth
+	redisConfig.DB = db
 
 	return nil
 }

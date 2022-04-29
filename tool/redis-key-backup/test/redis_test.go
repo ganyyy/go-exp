@@ -2,16 +2,16 @@ package test
 
 import (
 	"context"
+	"redis-key-backup/config"
 	"testing"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRedisClient(t *testing.T) {
-	var client = redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-		DB:   0,
-	})
+
+	var client = config.GetClient()
 
 	var back = context.Background()
 
@@ -67,4 +67,13 @@ func TestRedisClient(t *testing.T) {
 		}
 	})
 
+	t.Run("nil key", func(t *testing.T) {
+		{
+			const NilKey = "nil_key"
+			var ret, err = client.Get(context.Background(), NilKey).Result()
+			assert.Equal(t, err, redis.Nil)
+			assert.Equal(t, ret, "")
+			t.Logf("ret:%v, err:%v", ret, err)
+		}
+	})
 }

@@ -17,7 +17,7 @@ func init() {
 
 func (h hMapOperation) Dump(client *redis.Client, key string) (string, error) {
 	var ret, err = client.HGetAll(context.Background(), key).Result()
-	if err != nil {
+	if checkRedisError(err) != nil {
 		return "", err
 	}
 	var bs, _ = json.Marshal(ret)

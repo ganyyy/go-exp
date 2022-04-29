@@ -15,7 +15,7 @@ type stringOperation struct{}
 
 func (s stringOperation) Dump(client *redis.Client, key string) (string, error) {
 	var ret, err = client.Get(context.Background(), key).Result()
-	return ret, err
+	return ret, checkRedisError(err)
 }
 
 func (s stringOperation) Restore(client *redis.Client, key, val string) error {

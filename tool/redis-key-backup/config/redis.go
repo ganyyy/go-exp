@@ -11,9 +11,9 @@ var client *redis.Client
 
 func initClient() error {
 	client = redis.NewClient(&redis.Options{
-		Addr:         Config.Host,
-		Password:     Config.Auth,
-		DB:           Config.DB,
+		Addr:         redisConfig.Host,
+		Password:     redisConfig.Auth,
+		DB:           redisConfig.DB,
 		DialTimeout:  time.Second * 5,
 		ReadTimeout:  time.Second * 5,
 		WriteTimeout: time.Second * 5,
