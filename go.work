@@ -5,4 +5,5 @@ use (
     .
     ./tool/p2p
     ./tool/redis-key-backup
+    ./tool/patch
 )
