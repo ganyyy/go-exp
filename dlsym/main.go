@@ -7,15 +7,33 @@ package main
 #include <stdlib.h>
 #include <stdint.h>
 
-#include <stdio.h>
 
-static void* pluginMainLookup(const char* name, char** err) {
-	// NULL 表示查找当前可执行文件的符号
-	void* r = dlsym((void*)NULL, name);
+static uintptr_t pluginOpen(const char* path, char** err) {
+	void* h = dlopen(path, RTLD_NOW|RTLD_GLOBAL);
+	if (h == NULL) {
+		*err = (char*)dlerror();
+	}
+	return (uintptr_t)h;
+}
+
+static void* pluginLookup(uintptr_t h, const char* name, char** err) {
+	void* r = dlsym((void*)h, name);
 	if (r == NULL) {
 		*err = (char*)dlerror();
 	}
 	return r;
+}
+
+static void* pluginMainLookup(const char* name, char** err) {
+	return pluginLookup(0, name, err);
+}
+
+static int pluginClose(uintptr_t h, char** err) {
+	int ret = dlclose((void*)h);
+	if (ret != 0) {
+		*err = (char*)dlerror();
+	}
+	return ret;
 }
 */
 import "C"
@@ -23,23 +41,47 @@ import "C"
 import (
 	"plugin"
 	"reflect"
-	"syscall"
 	"unsafe"
 )
 
 func main() {
 	// 必须要先执行 dlopen, 才可以查找符号表
-	var handler, _ = plugin.Open("./plugin.so")
+	var handler2, err = plugin.Open("./plugin.so")
+	println(err)
 
-	var sum, _ = handler.Lookup("Sum")
+	var sum, _ = handler2.Lookup("Sum")
 
 	println(sum.(func(int) int)(100))
 
 	println(Add(Num, 100), ForeachAdd(Num))
 
-	var name = []byte("main.Num")
 	var cErr *C.char
-	var num = C.pluginMainLookup((*C.char)(unsafe.Pointer(&name[0])), &cErr)
+	defer C.free(unsafe.Pointer(cErr))
+	// {
+	// 	var name = []byte("./plugin.so")
+	// 	var handle = C.pluginOpen((*C.char)(unsafe.Pointer(&name[0])), &cErr)
+	// 	if handle == 0 {
+	// 		panic(C.GoString(cErr))
+	// 	}
+	// 	var sumName = []byte("Sum")
+	// 	// var val interface{}
+	// 	// valp := (*[2]unsafe.Pointer)(unsafe.Pointer(&val))
+	// 	var sum = C.pluginLookup(handle, (*C.char)(unsafe.Pointer(&sumName[0])), &cErr)
+	// 	// valp[1] = unsafe.Pointer(&sum)
+	// 	// var ret = val.(func(int) int)(100)
+	// 	println(sum, C.GoString(cErr))
+	// 	var ret = C.pluginClose(handle, &cErr)
+	// 	println(ret, C.GoString(cErr))
+	// 	return
+	// }
+
+	var handler = C.pluginOpen((*C.char)(unsafe.Pointer(uintptr(0))), &cErr)
+	if handler == 0 {
+		panic("cannot open plugin")
+	}
+
+	var name = []byte("main.Num")
+	var num = C.pluginLookup(handler, (*C.char)(unsafe.Pointer(&name[0])), &cErr)
 	if num == nil {
 		println(C.GoString(cErr))
 	} else {
@@ -79,57 +121,6 @@ func ShowFuncAddr(fun interface{}, name string) {
 	// var val = reflect.ValueOf(fun)
 	// var addr = (*funcVal)(unsafe.Pointer(&val)).ptr
 	// println("reflect:", addr)
-}
-
-type funcVal struct {
-	_   uintptr
-	ptr unsafe.Pointer
-}
-
-func copyToLocation(location uintptr, data []byte) {
-	f := rawMemoryAccess(location, len(data))
-
-	mprotectCrossPage(location, len(data), syscall.PROT_READ|syscall.PROT_WRITE|syscall.PROT_EXEC)
-	copy(f, data[:])
-	mprotectCrossPage(location, len(data), syscall.PROT_READ|syscall.PROT_EXEC)
-}
-
-func pageStart(ptr uintptr) uintptr {
-	return ptr & ^(uintptr(syscall.Getpagesize() - 1))
-}
-
-func mprotectCrossPage(addr uintptr, length int, prot int) {
-	pageSize := syscall.Getpagesize()
-	for p := pageStart(addr); p < addr+uintptr(length); p += uintptr(pageSize) {
-		page := rawMemoryAccess(p, pageSize)
-		err := syscall.Mprotect(page, prot)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func rawMemoryAccess(p uintptr, length int) []byte {
-	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: p,
-		Len:  length,
-		Cap:  length,
-	}))
-}
-
-func jmpToGoFn(to uintptr) []byte {
-	return []byte{
-		0x48, 0xBA,
-		byte(to),
-		byte(to >> 8),
-		byte(to >> 16),
-		byte(to >> 24),
-		byte(to >> 32),
-		byte(to >> 40),
-		byte(to >> 48),
-		byte(to >> 56), // movabs rdx,to
-		0xFF, 0x22,     // jmp QWORD PTR [rdx]
-	}
 }
 
 var Num int = 30

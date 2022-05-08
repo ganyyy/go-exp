@@ -8,3 +8,7 @@ func Sum(i int) int {
 	}
 	return ret
 }
+
+var ReplaceFunction = map[string]string{
+	"Sum": "main.TotalSum",
+}
