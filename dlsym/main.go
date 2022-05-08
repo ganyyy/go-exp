@@ -50,13 +50,12 @@ func main() {
 	println(err)
 
 	var sum, _ = handler2.Lookup("Sum")
-
-	println(sum.(func(int) int)(100))
+	var ff = sum.((func(int) int))
+	println(ff(100))
 
 	println(Add(Num, 100), ForeachAdd(Num))
 
 	var cErr *C.char
-	defer C.free(unsafe.Pointer(cErr))
 	// {
 	// 	var name = []byte("./plugin.so")
 	// 	var handle = C.pluginOpen((*C.char)(unsafe.Pointer(&name[0])), &cErr)
@@ -90,7 +89,7 @@ func main() {
 		println(*newNum, Num)
 		println(uintptr(num), uintptr(unsafe.Pointer(&Num)))
 	}
-	ShowFuncAddr(ForeachAdd, "main.ForeachAdd")
+	ShowFuncAddr(ff, "main.ForeachAdd")
 }
 
 func ShowFuncAddr(fun interface{}, name string) {
@@ -108,7 +107,7 @@ func ShowFuncAddr(fun interface{}, name string) {
 		println(ForeachAdd(10))
 
 		// addFunc 相当于拿到了 函数的地址, 进行替换跳转
-		var value = reflect.ValueOf(TotalSum)
+		var value = reflect.ValueOf(fun)
 		var toAddr = (*funcVal)(unsafe.Pointer(&value)).ptr
 
 		var toBytes = jmpToGoFn(uintptr(toAddr))
