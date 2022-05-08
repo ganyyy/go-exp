@@ -1,8 +1,6 @@
 package log
 
 import (
-	"os"
-
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -50,7 +48,7 @@ func Init(cfg Config) {
 		// 写入文件
 		zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), getLoggerWriter(cfg), logLevel),
 		// 输出到控制台
-		zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.Lock(os.Stdout), logLevel),
+		// zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.Lock(os.Stdout), logLevel),
 	)
 
 	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1)) // 再包装一层, 所以需要加一下
