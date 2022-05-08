@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"redis-key-backup/api"
 	"redis-key-backup/config"
@@ -61,8 +62,11 @@ func (t testBase) DoRestore(val string) (ret api.SaveStruct, err error) {
 }
 func (t testBase) After() error {
 	_, err := config.GetClient().Del(context.Background(), t.key).Result()
-	_, err = config.GetClient().Del(context.Background(), t.rKey).Result()
-	return err
+	_, err2 := config.GetClient().Del(context.Background(), t.rKey).Result()
+	if err == nil && err2 == nil {
+		return nil
+	}
+	return fmt.Errorf("error1:%v, error2:%v", err, err2)
 }
 func (t testBase) Equal(tt *testing.T, v1, v2 string) bool {
 	return assert.True(tt, v1 == v2)
