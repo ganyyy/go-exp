@@ -1,7 +1,7 @@
 package common
 
 import (
-	"golang.org/x/net/context"
+	"context"
 )
 
 type taskBase struct {
@@ -38,8 +38,6 @@ func (t *SyncTaskBase) wait(ctx context.Context) {
 	}
 }
 
-func (t *SyncTaskBase) finish() {
-	close(t.done)
-}
+func (t *SyncTaskBase) finish() { close(t.done) }
 
 func (t *SyncTaskBase) sync() bool { return true }

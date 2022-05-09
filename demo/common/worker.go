@@ -40,7 +40,7 @@ func (b *baseWorker) HandleTask(task ITask) {
 	if b.isDebug {
 		defer func(begin time.Time) {
 			log.Printf("%v Do [%v][%v] %v",
-				b.LogName(), TaskName(task), time.Now().Sub(begin), TaskToDetail(task),
+				b.LogName(), TaskName(task), time.Since(begin), TaskToDetail(task),
 			)
 		}(time.Now())
 	}
