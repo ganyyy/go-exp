@@ -3,7 +3,7 @@
 package patch
 
 /*
-#cgo linux LDFLAGS: -ldl -g -O2
+#cgo linux LDFLAGS: -ldl
 #include <dlfcn.h>
 */
 import "C"
