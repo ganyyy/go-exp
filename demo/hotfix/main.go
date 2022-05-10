@@ -18,6 +18,16 @@ func Min(src []int) int {
 	return ret
 }
 
+//go:noinline
+func Show(a, b, c, d, e, f, g int) {
+	println("in main:", a, b, c, d, e, f, g)
+}
+
+//go:noinline
+func Empty(a, b, c int) int {
+	return a + b + c
+}
+
 func main() {
 	go update.RunUpdateMonitor()
 	var src = []int{1, 2, 3, 4, 5}

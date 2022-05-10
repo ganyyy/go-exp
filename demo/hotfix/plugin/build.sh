@@ -6,6 +6,6 @@ find . -name "*.so" | xargs rm -f
 
 echo $NAME
 
-go build --buildmode=plugin  -o $NAME plugin.go
+go build --buildmode=plugin -ldflags "-X 'main.Version=${NAME}'" -o $NAME plugin.go
 
-echo "./plugin/${NAME}" > ./version
+echo "${NAME}" > ./version

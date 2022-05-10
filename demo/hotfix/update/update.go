@@ -1,6 +1,7 @@
 package update
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -12,8 +13,15 @@ import (
 	"unsafe"
 )
 
-const versionPath = "./plugin/version"
-const exchange = "Exchange"
+const (
+	PluginBase  = "./plugin/"
+	VersionPath = PluginBase + "version"
+)
+
+const (
+	VersionSymbol  = "Version"
+	ExchangeSymbol = "Exchange"
+)
 
 type backSymbol struct {
 	back []byte
@@ -25,30 +33,52 @@ var (
 	loaded       bool
 )
 
+func loadSymbol[T any](name string, pluginHandler *plugin.Plugin) (T, error) {
+	var symbol, err = pluginHandler.Lookup(name)
+	var empty T
+	if err != nil {
+		return empty, err
+	}
+	var wantType, realType = reflect.TypeOf(empty), reflect.TypeOf(symbol)
+	var realValue = reflect.ValueOf(symbol)
+	if !realType.AssignableTo(wantType) {
+		if realType.Kind() == reflect.Pointer {
+			realType = realType.Elem()
+			realValue = realValue.Elem()
+		}
+		if !realType.AssignableTo(wantType) {
+			return empty, fmt.Errorf("cannot exchange symbol %v type %v to %v", name, realType, wantType)
+		}
+	}
+	return realValue.Interface().(T), nil
+}
+
 func loadPlugin() {
 	// 缺少了类型检查..
 
 	var handler *plugin.Plugin
 	var mainHandler unsafe.Pointer
-	var symbol plugin.Symbol
+	var pluginVersion string
 	var err error
-
 	var version []byte
-	var pluginPath string
-	version, err = os.ReadFile(versionPath)
+	var pluginFileVersion string
+	var pluginName string
+
+	version, err = os.ReadFile(VersionPath)
 	if err != nil {
-		log.Printf("read version file %v error %v", versionPath, err)
+		log.Printf("read version file %v error %v", VersionPath, err)
 		return
 	}
-	pluginPath = strings.TrimSpace(string(version))
-	if _, err = os.Stat(pluginPath); err != nil {
-		log.Printf("cannot found plugin %v", pluginPath)
+	pluginFileVersion = strings.TrimSpace(string(version))
+	pluginName = PluginBase + pluginFileVersion
+	if _, err = os.Stat(pluginName); err != nil {
+		log.Printf("cannot found plugin %v", pluginName)
 		return
 	}
 	// 加载动态库
-	handler, err = plugin.Open(pluginPath)
+	handler, err = plugin.Open(pluginName)
 	if err != nil {
-		log.Printf("load %v error:%v", pluginPath, err)
+		log.Printf("load %v error:%v", pluginName, err)
 		return
 	}
 
@@ -68,23 +98,28 @@ func loadPlugin() {
 	}()
 
 	// 加载替换函数列表
-	symbol, err = handler.Lookup(exchange)
+
+	var symbolMap map[string]string
+
+	symbolMap, err = loadSymbol[map[string]string](ExchangeSymbol, handler)
 	if err != nil {
-		log.Printf("lookup plugin %v error %v", exchange, err)
+		log.Printf("loadSymbol Exchange error:%v", err)
 		return
 	}
 
-	symbolMapPtr, ok := symbol.(*map[string]string)
-	if !ok {
-		log.Printf("plugin symbol %v type %v error!", exchange, reflect.TypeOf(symbol))
-		return
-	}
-	if symbolMapPtr == nil {
-		log.Printf("plugin symbol %v is nil!", exchange)
+	// 对比版本信息
+	pluginVersion, err = loadSymbol[string](VersionSymbol, handler)
+	if err != nil {
+		log.Printf("loadSymbol Version error:%v", err)
 		return
 	}
 
-	symbolMap := *symbolMapPtr
+	if pluginVersion != pluginFileVersion {
+		log.Printf("plugin file version:%v, plugin version %v not match!", pluginFileVersion, pluginVersion)
+		return
+	}
+
+	//do patch
 
 	type exchangeFunc struct {
 		oldFunc unsafe.Pointer
@@ -125,7 +160,7 @@ func loadPlugin() {
 	}
 
 	loaded = true
-	log.Printf("patch %+v success!", symbolMapPtr)
+	log.Printf("patch %+v success!", symbolMap)
 }
 
 func restorePlugin() {
