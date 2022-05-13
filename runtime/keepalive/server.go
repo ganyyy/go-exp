@@ -33,6 +33,9 @@ func RunServer(done context.Context) {
 	// 检查次数
 	unix.SetsockoptInt(int(f.Fd()), unix.IPPROTO_TCP, unix.TCP_KEEPCNT, 1)
 
+	// 设置USER_TIMEOUT: TCP_KEEPIDLE + TCP_KEEPINTVL * TCP_KEEPCNT
+	unix.SetsockoptInt(int(f.Fd()), unix.IPPROTO_TCP, unix.TCP_USER_TIMEOUT, 15*1000)
+
 	// 等待退出
 	<-done.Done()
 	log.Printf("Server Exit!")
