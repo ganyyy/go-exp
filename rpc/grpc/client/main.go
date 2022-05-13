@@ -10,6 +10,7 @@ import (
 	"ganyyy.com/go-exp/rpc/grpc/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 )
 
 var (
@@ -19,7 +20,17 @@ var (
 func main() {
 	flag.Parse()
 
-	var conn, err = grpc.Dial(fmt.Sprintf(":%v", *port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	var keepParam = keepalive.ClientParameters{
+		Time:                10 * time.Second, // 没有活跃的情况下, 最长多久发一次心跳包
+		Timeout:             time.Second,      // 心跳包超过多久会认为链接已断开
+		PermitWithoutStream: true,             // 没有激活的流, 是否允许发送心跳包?(可以理解为, 是针对)
+	}
+
+	var conn, err = grpc.Dial(
+		fmt.Sprintf(":%v", *port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithKeepaliveParams(keepParam),
+	)
 	if err != nil {
 		log.Panicf("dial error:%v", err)
 	}

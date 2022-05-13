@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	"ganyyy.com/go-exp/container/sync_map"
+	"ganyyy.com/go-exp/generic/container/sync_map"
 	"github.com/stretchr/testify/assert"
 )
 
