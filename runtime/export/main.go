@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"unsafe"
 
-	"ganyyy.com/go-exp/export/package_b"
+	"ganyyy.com/go-exp/runtime/export/package_b"
 )
 
 type Outer struct {

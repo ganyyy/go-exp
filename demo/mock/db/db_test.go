@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"ganyyy.com/go-exp/mock/db"
+	"ganyyy.com/go-exp/demo/mock/db"
 
 	"github.com/golang/mock/gomock"
 )

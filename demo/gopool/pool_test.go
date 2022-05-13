@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"ganyyy.com/go-exp/gopool"
+	"ganyyy.com/go-exp/demo/gopool"
 )
 
 func TestPool(t *testing.T) {
