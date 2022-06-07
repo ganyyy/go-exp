@@ -6,6 +6,7 @@ use (
     ./tool/p2p
     ./tool/redis-key-backup
     ./tool/patch
+    ./tool/json2go
     //./work/bar
     //./work/foo
 )
