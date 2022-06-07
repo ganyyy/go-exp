@@ -121,6 +121,27 @@ const (
 		1,2,3,4
 	]
 	`
+
+	parse_data5 = `
+	[
+		[
+			1,2,3
+		],
+		[
+
+		]
+	]
+	`
+
+	parse_data6 = `
+	{
+		"configMap":{
+			"100": 10,
+			"101": 10,
+			"102": 10
+		}
+	}
+	`
 )
 
 func TestParse(t *testing.T) {
@@ -149,10 +170,18 @@ func TestParse(t *testing.T) {
 	t.Run("parse4", func(t *testing.T) {
 		t.Log(parseInputData("float_data", []byte(parse_data4), &param))
 	})
+
+	t.Run("parse5", func(t *testing.T) {
+		t.Log(parseInputData("empty_slice5", []byte(parse_data5), &param))
+	})
+
+	t.Run("parse6", func(t *testing.T) {
+		t.Log(parseInputData("empty_slice6", []byte(parse_data6), &param))
+	})
 }
 
 func TestFileTypeSlice(t *testing.T) {
-	var ft FiledType
+	var ft FieldType
 	ft.SetSlice()
 	ft.AddSlice(10)
 	t.Logf("%032b", ft)

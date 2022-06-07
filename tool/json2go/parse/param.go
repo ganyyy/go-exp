@@ -88,8 +88,12 @@ func parseInputData(base string, data []byte, param *ParseParam) error {
 		return err
 	}
 	var obj, err = parseValue(v)
-	if err != nil {
+	if err != nil && err != ErrEmptySlice {
 		return err
+	}
+	if err == ErrEmptySlice {
+		// 顶层的空切片, 无视即可
+		return nil
 	}
 	obj.KeyName = base
 	obj.TypeName = title(obj.KeyName)

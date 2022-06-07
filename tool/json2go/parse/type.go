@@ -1,35 +1,36 @@
 package parse
 
 type (
-	FiledType uint32
+	FieldType uint32
 )
 
 const (
-	TypeInt FiledType = 1 << iota // 这是一个特殊位置, 仅用于区分是否可以使用整形表示
+	TypeInt FieldType = 1 << iota // 这是一个特殊位置, 仅用于区分是否可以使用整形表示
 	TypeFloat
 	TypeBool
 	TypeString
+	TypeMap
 	TypeObject
 	TypeSlice // Slice比较特殊, 因为可能出现多重切片, 这里单独处理一下
 	TypeCount = iota
 )
 
-func (t FiledType) Check(ft FiledType) bool {
+func (t FieldType) Check(ft FieldType) bool {
 	return t&ft != 0
 }
 
-func (t FiledType) Clear(ft FiledType) FiledType {
+func (t FieldType) Clear(ft FieldType) FieldType {
 	return t &^ ft
 }
 
-func (t FiledType) NaiveType() FiledType {
+func (t FieldType) NaiveType() FieldType {
 	t = t.Clear(TypeSlice)
 	t.ClearSliceCount()
 	return t.Clear(TypeInt | TypeFloat)
 }
 
-func (t FiledType) NumberType() FiledType {
-	var ret FiledType
+func (t FieldType) NumberType() FieldType {
+	var ret FieldType
 	if t.Check(TypeInt) {
 		ret |= TypeInt
 	}
@@ -39,7 +40,7 @@ func (t FiledType) NumberType() FiledType {
 	return ret
 }
 
-func (t FiledType) ElemType() FiledType {
+func (t FieldType) ElemType() FieldType {
 	if typ := t.NaiveType(); typ != 0 {
 		return typ
 	}
@@ -50,13 +51,13 @@ func (t FiledType) ElemType() FiledType {
 	return TypeInt
 }
 
-func (t FiledType) FiledType() string {
+func (t FieldType) FiledType() string {
 	var isSlice = t.Check(TypeSlice)
 	var typ string
 	switch t.ElemType() {
 	case TypeInt:
 		typ = "int"
-	case TypeFloat:
+	case TypeFloat, TypeFloat | TypeInt:
 		typ = "float64"
 	case TypeBool:
 		typ = "bool"
@@ -76,12 +77,12 @@ func (t FiledType) FiledType() string {
 	return pre + typ
 }
 
-func (t FiledType) Default() string {
+func (t FieldType) Default() string {
 	if t.Check(TypeSlice) {
 		return "nil"
 	}
 	switch t.ElemType() {
-	case TypeInt, TypeFloat:
+	case TypeInt, TypeFloat, TypeInt | TypeFloat:
 		return "0"
 	case TypeBool:
 		return "false"
@@ -96,14 +97,14 @@ func (t FiledType) Default() string {
 
 // 以下是针对于Slice的特殊方法
 
-func (t FiledType) SliceCount() int {
+func (t FieldType) SliceCount() int {
 	if !t.Check(TypeSlice) {
 		return 0
 	}
 	return int(t >> (TypeCount))
 }
 
-func (t *FiledType) SetSlice() {
+func (t *FieldType) SetSlice() {
 	if t.Check(TypeSlice) {
 		return
 	}
@@ -111,17 +112,17 @@ func (t *FiledType) SetSlice() {
 	t.AddSlice(1)
 }
 
-func (t *FiledType) AddSlice(cnt int) {
+func (t *FieldType) AddSlice(cnt int) {
 	if !t.Check(TypeSlice) || cnt == 0 {
 		return
 	}
 	var total = cnt + t.SliceCount()
 	var cur = *t
-	cur &^= FiledType(^(uint32(1<<TypeCount) - 1))
-	cur |= FiledType(uint32(total << TypeCount))
+	cur &^= FieldType(^(uint32(1<<TypeCount) - 1))
+	cur |= FieldType(uint32(total << TypeCount))
 	*t = cur
 }
 
-func (t *FiledType) ClearSliceCount() {
-	*t &^= FiledType(^(uint32(1<<TypeCount) - 1))
+func (t *FieldType) ClearSliceCount() {
+	*t &^= FieldType(^(uint32(1<<TypeCount) - 1))
 }

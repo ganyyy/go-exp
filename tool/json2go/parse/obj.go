@@ -3,6 +3,7 @@ package parse
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"golang.org/x/text/cases"
@@ -14,14 +15,15 @@ const (
 )
 
 var (
-	translate = cases.Title(language.AmericanEnglish)
+	translate = cases.Upper(language.AmericanEnglish)
 )
 
 type JsonObject struct {
 	KeyName  string
 	TypeName string
 	Fields   map[string]*JsonObject // 子字段
-	Type     FiledType
+	Type     FieldType
+	eleName  string
 }
 
 func (j *JsonObject) AllFields() []*JsonObject {
@@ -42,7 +44,7 @@ func (j *JsonObject) IsObject() bool {
 	return j.Type.Check(TypeObject)
 }
 
-func (j *JsonObject) GetCheckType() FiledType {
+func (j *JsonObject) GetCheckType() FieldType {
 	// Int不是标准的类型, 这里需要清空处理
 	return j.Type.Clear(TypeInt | TypeFloat)
 }
@@ -56,25 +58,77 @@ func (j *JsonObject) Default() string {
 }
 
 func (j *JsonObject) ElemName() string {
+	if j.eleName != "" {
+		return j.eleName
+	}
 	var typName = j.Type.FiledType()
 	if j.Type.Check(TypeObject) {
 		typName += j.TypeName
 	}
+	j.eleName = typName
 	return typName
 }
 
-func (j *JsonObject) Key() string {
-	if len(j.KeyName) == 0 {
-		return "p"
+func (j *JsonObject) TryCheckToMap() bool {
+	var checkKeyType = func(key string) FieldType {
+		if _, err := strconv.ParseInt(key, 10, 64); err == nil {
+			return TypeInt
+		} else if _, err = strconv.ParseFloat(key, 64); err == nil {
+			return TypeFloat
+		}
+		return 0
 	}
-	return j.KeyName[:1]
+
+	var keyType FieldType
+	var valType FieldType
+	var isMap = true
+	for key, field := range j.Fields {
+		if kt := checkKeyType(key); kt == 0 {
+			return false
+		} else {
+			keyType |= kt
+		}
+		if valType == 0 {
+			// 仅支持简单类型, 且必须做到类型一致值类型才可以
+			valType = field.Type
+			if !valType.Check(TypeBool | TypeFloat | TypeInt | TypeString) {
+				isMap = false
+				break
+			}
+		} else {
+			if valType.NaiveType() != field.Type.NaiveType() {
+				isMap = false
+				break
+			}
+		}
+	}
+	if !isMap {
+		return false
+	}
+	// 包装成Map类型
+	var key string
+	if keyType.Check(TypeString) {
+		key = TypeString.FiledType()
+	} else {
+		key = keyType.FiledType()
+	}
+	var val = valType.FiledType()
+	j.eleName = fmt.Sprintf("map[%s]%s", key, val)
+	return true
+}
+
+func (j *JsonObject) Key() string {
+	return "p"
 }
 
 func (j *JsonObject) FieldName() string {
+	if _, err := strconv.ParseFloat(j.KeyName, 64); err == nil {
+		return "N" + j.KeyName
+	}
 	return title(j.KeyName)
 }
 
-func (j *JsonObject) ElemType() FiledType {
+func (j *JsonObject) ElemType() FieldType {
 	return j.Type.ElemType()
 }
 
@@ -102,7 +156,7 @@ func title(src string) string {
 	var ss = strings.Split(src, "_")
 	var ret strings.Builder
 	for _, s := range ss {
-		ret.WriteString(translate.String(s))
+		ret.WriteString(strings.Title(s))
 	}
 	return ret.String()
 }

@@ -11,10 +11,10 @@ func main() {
 	var app = cli.NewApp()
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:     "input,i",
-			Usage:    "input json file",
-			Required: true,
-			Value:    "./json",
+			Name:  "input,i",
+			Usage: "input json file",
+			// Required: true,
+			Value: "/home/gan/code/java/Grasscutter/resources/ExcelBinOutput/DungeonExcelConfigData.json",
 		},
 		cli.StringFlag{
 			Name:  "output,o",

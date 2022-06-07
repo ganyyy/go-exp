@@ -17,6 +17,7 @@ type (
 var (
 	ErrEmptyObj    = errors.New("empty object")
 	ErrInvalidType = errors.New("invalid type")
+	ErrEmptySlice  = errors.New("empty slice")
 )
 
 func parseObject(src naiveObj) (*JsonObject, error) {
@@ -28,8 +29,11 @@ func parseObject(src naiveObj) (*JsonObject, error) {
 	obj.Fields = make(map[string]*JsonObject)
 	for name, val := range src {
 		var field, err = parseValue(val)
-		if err != nil {
+		if err != nil && err != ErrEmptySlice {
 			return nil, fmt.Errorf("parse %v, %+v error:%w", name, val, err)
+		}
+		if err == ErrEmptySlice {
+			continue
 		}
 		field.KeyName = name
 		obj.Fields[name] = field
@@ -77,11 +81,17 @@ func parseValue(src naiveValue) (*JsonObject, error) {
 func parseSlice(src naiveSlice) (*JsonObject, error) {
 	var current *JsonObject
 	var err error
+	if len(src) == 0 {
+		return nil, ErrEmptySlice
+	}
 	for _, obj := range src {
 		var parseVal *JsonObject
 		parseVal, err = parseValue(obj)
-		if err != nil {
+		if err != nil && err != ErrEmptySlice {
 			return nil, fmt.Errorf("parse %+v error:%w", obj, err)
+		}
+		if err == ErrEmptySlice {
+			continue
 		}
 		if current == nil {
 			current = parseVal
@@ -100,6 +110,9 @@ func parseSlice(src naiveSlice) (*JsonObject, error) {
 			}
 		}
 	}
+	if current == nil {
+		return nil, ErrEmptySlice
+	}
 	if current.Type.Check(TypeSlice) {
 		current.Type.AddSlice(1)
 	} else {
@@ -110,15 +123,21 @@ func parseSlice(src naiveSlice) (*JsonObject, error) {
 
 func ParseAllType(root *JsonObject) []*JsonObject {
 	var allType []*JsonObject
-	//把自己先加进去
-	allType = append(allType, root)
+	if root.IsObject() {
+		//把自己先加进去
+		allType = append(allType, root)
+	}
 	var dfs func(obj *JsonObject)
 	dfs = func(jt *JsonObject) {
 		for name, obj := range jt.Fields {
 			if obj.Type&TypeObject != 0 {
-				obj.TypeName = jt.TypeName + title(name)
-				dfs(obj)
-				allType = append(allType, obj)
+				if ok := obj.TryCheckToMap(); ok {
+					obj.Type = obj.Type.Clear(TypeObject) | TypeMap
+				} else {
+					obj.TypeName = jt.TypeName + title(name)
+					dfs(obj)
+					allType = append(allType, obj)
+				}
 			}
 		}
 	}

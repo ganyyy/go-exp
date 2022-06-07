@@ -17,22 +17,22 @@ import (
 )
 
 
-var src{{.Root.TypeName}}Data {{.Root.ElemName}}
+var src{{.Root.TypeName}} {{.Root.ElemName}}
 
-func Load{{.Root.TypeName}}Data(path string) error {
+func Load{{.Root.TypeName}}(path string) error {
 	var bs, err = os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	return Parse{{.Root.TypeName}}Data(bs)
+	return Parse{{.Root.TypeName}}(bs)
 }
 
-func Parse{{.Root.TypeName}}Data(bs []byte) error {
-	return json.Unmarshal(bs, &src{{.Root.TypeName}}Data)
+func Parse{{.Root.TypeName}}(bs []byte) error {
+	return json.Unmarshal(bs, &src{{.Root.TypeName}})
 }
 
-func Get{{.Root.TypeName}}Data () {{.Root.ElemName}} {
-	return src{{.Root.TypeName}}Data
+func Get{{.Root.TypeName}} () {{.Root.ElemName}} {
+	return src{{.Root.TypeName}}
 }
 
 {{range $type := .AllType}}
@@ -87,7 +87,7 @@ func (p *TemplateParse) Parse(output string) error {
 	// go fmt 格式化
 	content, err := format.Source(outBuf.Bytes())
 	if err != nil {
-		os.WriteFile(output, content, fs.ModePerm)
+		os.WriteFile(output, outBuf.Bytes(), fs.ModePerm)
 		return err
 	}
 	// 写入到目标文件
