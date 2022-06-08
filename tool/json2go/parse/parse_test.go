@@ -1,48 +1,8 @@
 package parse
 
 import (
-	"encoding/json"
-	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
-
-func testParseJson(t *testing.T, src string, fileName string, base string) {
-	var decoder = json.NewDecoder(strings.NewReader(src))
-	// decoder.UseNumber()
-	var v naiveValue
-	assert.Nil(t, decoder.Decode(&v))
-
-	var obj, err = parseValue(v)
-	if !assert.Nil(t, err) {
-		return
-	}
-	obj.KeyName = base
-	obj.TypeName = title(obj.KeyName)
-
-	if obj.Type.Check(TypeSlice) {
-		t.Logf("slice count:%v", obj.Type.SliceCount())
-		t.Logf("slice type:%v", obj.ElemName())
-	}
-
-	var allType = ParseAllType(obj)
-	for _, v := range allType {
-		t.Logf("type:%v", v.TypeName)
-		for _, f := range v.AllFields() {
-			t.Logf("\t%+v", f)
-		}
-	}
-	assert.Nil(t, err)
-
-	var output = "./data/" + fileName
-	var tp TemplateParse
-	tp.Root = obj
-	tp.AllType = allType
-	tp.PkgName = "data"
-	err = tp.Parse(output)
-	t.Log(err)
-}
 
 const (
 	parse_data1 = `
@@ -118,7 +78,7 @@ const (
 
 	parse_data4 = `
 	[
-		1,2,3,4
+		1,2,3,4.5
 	]
 	`
 
@@ -142,6 +102,32 @@ const (
 		}
 	}
 	`
+
+	parse_data7 = `
+	[
+		[
+			{
+				"100": 10,
+				"101": 10,
+				"102": 10
+			}
+		],
+		[
+			{
+				"100": 10,
+				"101": 10,
+				"102": 10
+			}
+		],
+		[
+			{
+				"100": 10,
+				"101": 10,
+				"102": 10
+			}
+		]
+	]
+	`
 )
 
 func TestParse(t *testing.T) {
@@ -155,29 +141,24 @@ func TestParse(t *testing.T) {
 		t.FailNow()
 	}
 
-	t.Run("parse", func(t *testing.T) {
-		t.Log(parseInputData("data", []byte(parse_data1), &param))
-	})
+	var cases = []struct {
+		name string
+		data string
+	}{
+		// {"data", parse_data1},
+		// {"user", parse_data2},
+		// {"object", parse_data3},
+		{"float_data", parse_data4},
+		// {"empty_slice5", parse_data5},
+		// {"single_map", parse_data6},
+		// {"multi_map", parse_data7},
+	}
 
-	t.Run("parse2", func(t *testing.T) {
-		t.Log(parseInputData("user", []byte(parse_data2), &param))
-	})
-
-	t.Run("parse3", func(t *testing.T) {
-		t.Log(parseInputData("object", []byte(parse_data3), &param))
-	})
-
-	t.Run("parse4", func(t *testing.T) {
-		t.Log(parseInputData("float_data", []byte(parse_data4), &param))
-	})
-
-	t.Run("parse5", func(t *testing.T) {
-		t.Log(parseInputData("empty_slice5", []byte(parse_data5), &param))
-	})
-
-	t.Run("parse6", func(t *testing.T) {
-		t.Log(parseInputData("empty_slice6", []byte(parse_data6), &param))
-	})
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Log(parseInputData(c.name, []byte(c.data), &param))
+		})
+	}
 }
 
 func TestFileTypeSlice(t *testing.T) {

@@ -63,6 +63,8 @@ func (t FieldType) FiledType() string {
 		typ = "bool"
 	case TypeString:
 		typ = "string"
+	case TypeMap:
+		typ = "" // 外围决定对应的类型
 	case TypeObject:
 		// 结构体类型的时机名称需要在外部添加
 		typ = "*"
@@ -78,7 +80,7 @@ func (t FieldType) FiledType() string {
 }
 
 func (t FieldType) Default() string {
-	if t.Check(TypeSlice) {
+	if t.Check(TypeSlice | TypeObject | TypeMap) {
 		return "nil"
 	}
 	switch t.ElemType() {
@@ -88,8 +90,6 @@ func (t FieldType) Default() string {
 		return "false"
 	case TypeString:
 		return "\"\""
-	case TypeObject:
-		fallthrough
 	default:
 		return "nil"
 	}
@@ -125,4 +125,10 @@ func (t *FieldType) AddSlice(cnt int) {
 
 func (t *FieldType) ClearSliceCount() {
 	*t &^= FieldType(^(uint32(1<<TypeCount) - 1))
+}
+
+// 针对Map的特殊处理
+
+func (t *FieldType) SetMap() {
+	*t = t.Clear(TypeObject) | TypeMap
 }

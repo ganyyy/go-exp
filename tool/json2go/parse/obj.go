@@ -21,9 +21,9 @@ var (
 type JsonObject struct {
 	KeyName  string
 	TypeName string
+	MapType  string                 // 仅在对象类型是Map时有效.. 或者, 可以考虑不用这个?
 	Fields   map[string]*JsonObject // 子字段
 	Type     FieldType
-	eleName  string
 }
 
 func (j *JsonObject) AllFields() []*JsonObject {
@@ -58,18 +58,19 @@ func (j *JsonObject) Default() string {
 }
 
 func (j *JsonObject) ElemName() string {
-	if j.eleName != "" {
-		return j.eleName
-	}
 	var typName = j.Type.FiledType()
 	if j.Type.Check(TypeObject) {
 		typName += j.TypeName
+	} else if j.Type.Check(TypeMap) {
+		typName += j.MapType
 	}
-	j.eleName = typName
 	return typName
 }
 
 func (j *JsonObject) TryCheckToMap() bool {
+	if len(j.Fields) == 0 {
+		return false
+	}
 	var checkKeyType = func(key string) FieldType {
 		if _, err := strconv.ParseInt(key, 10, 64); err == nil {
 			return TypeInt
@@ -106,14 +107,10 @@ func (j *JsonObject) TryCheckToMap() bool {
 		return false
 	}
 	// 包装成Map类型
-	var key string
-	if keyType.Check(TypeString) {
-		key = TypeString.FiledType()
-	} else {
-		key = keyType.FiledType()
-	}
+	var key = keyType.FiledType()
 	var val = valType.FiledType()
-	j.eleName = fmt.Sprintf("map[%s]%s", key, val)
+	j.MapType = fmt.Sprintf("map[%s]%s", key, val)
+	j.Type.SetMap()
 	return true
 }
 
