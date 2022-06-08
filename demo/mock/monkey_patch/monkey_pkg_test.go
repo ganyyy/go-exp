@@ -38,5 +38,6 @@ func TestMonkeyMethod(t *testing.T) {
 
 		var runner monkey_patch.Runnable
 		runner.SetAAA(100)
+		t.Logf("aaa:%v", runner.AAA)
 	}
 }

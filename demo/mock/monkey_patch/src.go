@@ -9,6 +9,7 @@ type Runnable struct {
 	AAA int
 }
 
+//go:noinline
 func (r *Runnable) SetAAA(a int) {
 	r.AAA = a
 }
