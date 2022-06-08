@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -15,7 +16,12 @@ type ParseParam struct {
 	OutputPath string
 	GoPackage  string
 	UseNumber  bool
+	ParseMap   bool
 }
+
+var (
+	errNotJsonFile = errors.New("not valid json ext file")
+)
 
 const (
 	jsonExt = ".json"
@@ -51,7 +57,13 @@ func (param *ParseParam) Parse() error {
 				return nil
 			}
 			//TODO 启用协程池处理
-			return param.parseFile(path)
+			if err := param.parseFile(path); err != nil {
+				log.Printf("Parse %v error %v", path, err)
+			} else {
+				log.Printf("Parse %v success!", path)
+			}
+			// 尽量不返回错误, 让他继续向下跑
+			return nil
 		})
 	} else {
 		// 单个文件
@@ -64,18 +76,25 @@ func (param *ParseParam) Parse() error {
 func (param *ParseParam) parseFile(path string) error {
 	var ext = filepath.Ext(path)
 	if ext != jsonExt {
-		return nil
+		return errNotJsonFile
 	}
 
 	var base = filepath.Base(path)
 	if len(base) <= len(jsonExt) {
-		return nil
+		return errNotJsonFile
 	}
 	var bs, err = os.ReadFile(path)
 	if err != nil {
 		return err
 	}
 	return parseInputData(base[:len(base)-len(ext)], bs, param)
+}
+
+func (param *ParseParam) tryParseObjectToMap(obj *JsonObject) bool {
+	if obj == nil || !param.ParseMap {
+		return false
+	}
+	return obj.TryCheckToMap()
 }
 
 func parseInputData(base string, data []byte, param *ParseParam) error {
@@ -98,7 +117,7 @@ func parseInputData(base string, data []byte, param *ParseParam) error {
 	obj.KeyName = base
 	obj.TypeName = title(obj.KeyName)
 
-	var allType = ParseAllType(obj)
+	var allType = ParseAllType(obj, param)
 
 	var output = param.OutputPath + "/" + base + ".go"
 	var tp TemplateParse

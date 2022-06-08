@@ -135,6 +135,7 @@ func TestParse(t *testing.T) {
 	param.GoPackage = "data"
 	param.OutputPath = "./data"
 	param.UseNumber = true
+	param.ParseMap = true
 
 	if err := param.InitOutput(); err != nil {
 		t.Logf("init error:%v", err)
@@ -145,13 +146,13 @@ func TestParse(t *testing.T) {
 		name string
 		data string
 	}{
-		// {"data", parse_data1},
-		// {"user", parse_data2},
-		// {"object", parse_data3},
+		{"data", parse_data1},
+		{"user", parse_data2},
+		{"object", parse_data3},
 		{"float_data", parse_data4},
-		// {"empty_slice5", parse_data5},
-		// {"single_map", parse_data6},
-		// {"multi_map", parse_data7},
+		{"empty_slice5", parse_data5},
+		{"single_map", parse_data6},
+		{"multi_map", parse_data7},
 	}
 
 	for _, c := range cases {

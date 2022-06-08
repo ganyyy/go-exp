@@ -87,9 +87,10 @@ func (p *TemplateParse) Parse(output string) error {
 	// go fmt 格式化
 	content, err := format.Source(outBuf.Bytes())
 	if err != nil {
+		// 如果出错了, 也将文件输出一下, 方便查找错误
 		os.WriteFile(output, outBuf.Bytes(), fs.ModePerm)
 		return err
 	}
-	// 写入到目标文件
+	// 写入到目标文件. 此时就是格式化好文件, enjoy it!
 	return os.WriteFile(output, content, fs.ModePerm)
 }

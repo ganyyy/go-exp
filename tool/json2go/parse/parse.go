@@ -121,9 +121,9 @@ func parseSlice(src naiveSlice) (*JsonObject, error) {
 	return current, nil
 }
 
-func ParseAllType(root *JsonObject) []*JsonObject {
+func ParseAllType(root *JsonObject, param *ParseParam) []*JsonObject {
 	var allType []*JsonObject
-	root.TryCheckToMap()
+	param.tryParseObjectToMap(root)
 	if root.IsObject() {
 		//把自己先加进去
 		allType = append(allType, root)
@@ -132,7 +132,7 @@ func ParseAllType(root *JsonObject) []*JsonObject {
 	dfs = func(jt *JsonObject) {
 		for name, obj := range jt.Fields {
 			if obj.Type&TypeObject != 0 {
-				if ok := obj.TryCheckToMap(); !ok {
+				if ok := param.tryParseObjectToMap(obj); !ok {
 					obj.TypeName = jt.TypeName + title(name)
 					dfs(obj)
 					allType = append(allType, obj)

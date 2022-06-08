@@ -9,12 +9,14 @@ import (
 
 func main() {
 	var app = cli.NewApp()
+	app.Usage = `
+		Try parse json file to go struct
+	`
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "input,i",
-			Usage: "input json file",
-			// Required: true,
-			Value: "/home/gan/code/java/Grasscutter/resources/ExcelBinOutput/DungeonExcelConfigData.json",
+			Name:     "input,i",
+			Usage:    "input json file",
+			Required: true,
 		},
 		cli.StringFlag{
 			Name:  "output,o",
@@ -29,6 +31,10 @@ func main() {
 		cli.BoolFlag{
 			Name:  "number,n",
 			Usage: "try parse number to int",
+		},
+		cli.BoolFlag{
+			Name:  "map, m",
+			Usage: "try parse object to map",
 		},
 	}
 	app.Action = cli.ActionFunc(run)
@@ -49,6 +55,7 @@ func run(ctx *cli.Context) error {
 		OutputPath: output,
 		GoPackage:  gopkg,
 		UseNumber:  ctx.Bool("number"),
+		ParseMap:   ctx.Bool("map"),
 	}
 
 	if err := param.InitOutput(); err != nil {
