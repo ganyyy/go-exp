@@ -3,6 +3,7 @@ module ganyyy.com/go-exp
 go 1.18
 
 require (
+	github.com/Shopify/go-lua v0.0.0-20220120202609-9ab779377807
 	github.com/astaxie/beego v1.12.3
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-sql-driver/mysql v1.6.0
@@ -11,12 +12,14 @@ require (
 	github.com/labstack/echo/v4 v4.7.2
 	github.com/labstack/gommon v0.3.1
 	github.com/stretchr/testify v1.7.1
+	github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64
 	go.etcd.io/etcd/client/v3 v3.5.2
 	go.mongodb.org/mongo-driver v1.9.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/sys v0.0.0-20220328115105-d36c6a25d886
 	google.golang.org/grpc v1.45.0
 	gorm.io/gorm v1.23.1
+	layeh.com/gopher-luar v1.0.10
 )
 
 require (
@@ -66,6 +69,8 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.1.0
+	github.com/aarzilli/golua v0.0.0-20210507130708-11106aa57765
+	github.com/arnodel/golua v0.0.0-20220602143843-8cf7d8435595
 	github.com/cloudwego/netpoll v0.1.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deathowl/go-metrics-prometheus v0.0.0-20200518174047-74482eab5bfb
