@@ -14,7 +14,12 @@ type TimePrint struct {
 	EndTime   int64 `bson:"end_time,omitempty"`
 }
 
+type Base struct {
+	Id primitive.ObjectID `bson:"_id,omitempty"`
+}
+
 type LogRecord struct {
+	Base    `bson:"inline"`
 	JobName string    `bson:"job_name,omitempty"`
 	Command string    `bson:"command,omitempty"`
 	Err     string    `bson:"err,omitempty"`

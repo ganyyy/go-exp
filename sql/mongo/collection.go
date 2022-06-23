@@ -33,6 +33,10 @@ func ValidCollection() {
 		}),
 	)
 
+	if err != nil {
+		panic(err)
+	}
+
 	var collection = db.Collection("valid_collection")
 
 	const (

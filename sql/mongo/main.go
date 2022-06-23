@@ -2,5 +2,6 @@ package main
 
 func main() {
 	InitClient()
-	ValidCollection()
+	// ValidCollection()
+	InsertOne()
 }
