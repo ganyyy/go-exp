@@ -52,3 +52,9 @@ func TestNilStruct(t *testing.T) {
 	}()
 
 }
+
+func TestMakeSlice(t *testing.T) {
+	var s = make([]int, 7, 7)
+	s = append(s, 1)
+	t.Logf("len:%v, cap:%v", len(s), cap(s))
+}

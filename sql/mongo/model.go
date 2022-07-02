@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -73,4 +74,20 @@ func InsertOne() {
 	}
 
 	log.Printf("%+v", logRecord)
+
+	var lock sync.Mutex
+	var val bool
+	var cond = sync.NewCond(&lock)
+	go func() {
+		lock.Lock()
+		for !val {
+			cond.Wait()
+		}
+	}()
+	go func() {
+		lock.Lock()
+		defer lock.Unlock()
+		val = true
+		cond.Signal()
+	}()
 }
