@@ -12,15 +12,22 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-	"unsafe"
+	"sync/atomic"
 
 	"golang.org/x/tools/go/packages"
+	"golang.org/x/tools/imports"
 )
 
 var (
 	typeNames = flag.String("type", "", "comma-separated list of type names; must be set")
-	output    = flag.String("output", "./filter.go", "output file name; default srcdir/filter.go")
+	output    = flag.String("output", "./filter.go", "output file name; default srcDir/filter.go")
 )
+
+var template = `
+func %v(v %v) bson.E {
+	return bson.E{Key: "%v", Value: v}
+}
+`
 
 func isDirectory(name string) bool {
 	info, err := os.Stat(name)
@@ -30,30 +37,12 @@ func isDirectory(name string) bool {
 	return info.IsDir()
 }
 
-func toBytes(s string) []byte {
-	type bsStruct struct {
-		s string
-		i int64
-	}
-	return *(*[]byte)(unsafe.Pointer(&bsStruct{s: s, i: int64(len(s))}))
-}
-
-func toString(bs []byte) string {
-	return *(*string)(unsafe.Pointer(&bs))
-}
-
-func transfer[Dst any](src any) Dst { return src.(Dst) }
-
-var ident = transfer[*ast.Ident]
-
 func checkField(name string) (string, bool) {
 	if len(name) == 0 {
 		return name, false
 	}
 	if name[0] >= 'A' && name[0] <= 'Z' {
-		var bs = []byte(name)
-		bs[0] += byte('a' - 'A')
-		return toString(bs), true
+		return "f" + name, true
 	}
 	return "", false
 }
@@ -62,6 +51,7 @@ func parseTag(tagName string) (string, bool) {
 	if len(tagName) < 2 {
 		return "", false
 	}
+	// 去掉 ``
 	tagName = tagName[1 : len(tagName)-1]
 	var tag reflect.StructTag = reflect.StructTag(tagName)
 
@@ -73,6 +63,11 @@ func parseTag(tagName string) (string, bool) {
 	if len(sp) < 1 {
 		return "", true
 	}
+	for _, v := range sp {
+		if v == "omitempty" {
+			return "", false
+		}
+	}
 	var name = sp[0]
 	if name == "-" {
 		return "", false
@@ -80,63 +75,146 @@ func parseTag(tagName string) (string, bool) {
 	return name, true
 }
 
+// 输出缓存
 var outBuffer = bytes.NewBuffer(nil)
 
-func showSetFunction(typ string, field *ast.Field) {
+func filterFunction(typ string, field *ast.Field) (add bool) {
 	if len(field.Names) == 0 {
 		return
 	}
 	var fieldName = field.Names[0].Name
-	paramName, ok := checkField(fieldName)
+	_, ok := checkField(fieldName)
 	if !ok {
 		return
 	}
-	ptr, ok := field.Type.(*ast.StarExpr)
 
-	var template = `
-func %v%v(%v %v%v) bson.E {
-	return bson.E{Key: "%v", Value: %v}
-}
-`
-	var pre string
-	var name string
-	if ok {
-		pre = "*"
-		name = ident(ptr.X).Name
-	} else {
-		name = ident(field.Type).Name
+	paramType, ok := findFieldType(field.Type)
+	if !ok {
+		return
 	}
+
+	log.Printf("Type: %v paramType: %v", typ, paramType)
+
 	var tg string
 	if field.Tag != nil {
+		// 尝试解析tag
 		tg, ok = parseTag(field.Tag.Value)
 		if !ok {
 			return
 		}
 	}
 	if tg == "" {
+		// mongo的默认key
 		tg = strings.ToLower(fieldName)
 	}
 
-	outBuffer.WriteString(fmt.Sprintf(template, typ, fieldName, paramName, pre, name, tg, paramName))
+	outBuffer.WriteString(
+		fmt.Sprintf(
+			template, typ+fieldName, paramType, tg,
+		))
+	return true
 }
+
+var genPath []string
 
 func main() {
 
 	log.SetFlags(0)
-	log.SetPrefix("goast: ")
+	log.SetPrefix("bson_filter: ")
 	flag.Parse()
+	genPath = flag.Args()
+	if len(genPath) == 0 {
+		genPath = append(genPath, ".")
+	}
+	filter()
+}
+
+func findFieldType(expr ast.Expr) (tpName string, tpValid bool) {
+	switch typ := expr.(type) {
+	case (*ast.StarExpr):
+		// 指针类型
+		var val, ok = findFieldType(typ.X)
+		if !ok {
+			return
+		}
+		return "*" + val, true
+	case (*ast.ArrayType):
+		// 切片类型
+		var ele, ok = findFieldType(typ.Elt)
+		if !ok {
+			return
+		}
+		return "[]" + ele, true
+	case (*ast.MapType):
+		// 字典类型
+		var key, val string
+		var ok bool
+		key, ok = findFieldType(typ.Key)
+		if !ok {
+			return
+		}
+		val, ok = findFieldType(typ.Value)
+		if !ok {
+			return
+		}
+		return "map[" + key + "]" + val, true
+	case (*ast.Ident):
+		// 通用类型(bool,float,int... etc)
+		return typ.Name, true
+	case (*ast.IndexExpr):
+		// 单个泛型参数的泛型类型
+		var main, valid = findFieldType(typ.X)
+		if !valid {
+			return
+		}
+		var param, pv = findFieldType(typ.Index)
+		if !pv {
+			return
+		}
+		return main + "[" + param + "]", true
+	case (*ast.IndexListExpr):
+		// 多个泛型参数的泛型类型
+		var main, valid = findFieldType(typ.X)
+		if !valid {
+			return
+		}
+		var params []string
+		for _, x := range typ.Indices {
+			p, v := findFieldType(x)
+			if !v {
+				return
+			}
+			params = append(params, p)
+		}
+		if len(params) == 0 {
+			return
+		}
+		return main + "[" + strings.Join(params, ",") + "]", true
+	case (*ast.SelectorExpr):
+		var pkgName, pv = findFieldType(typ.X)
+		if !pv {
+			return
+		}
+		var pt, tv = findFieldType(typ.Sel)
+		if !tv {
+			return
+		}
+		return pkgName + "." + pt, true
+	default:
+		return
+	}
+}
+
+func filter() {
 	if len(*typeNames) == 0 {
 		os.Exit(2)
 	}
-	args := flag.Args()
-	if len(args) == 0 {
-		args = append(args, ".")
-	}
+
 	var dir string
-	if len(args) == 1 && isDirectory(args[0]) {
-		dir = args[0]
+	if len(genPath) == 1 && isDirectory(genPath[0]) {
+		dir = genPath[0]
 	} else {
-		dir = filepath.Dir(args[0])
+		dir = filepath.Dir(genPath[0])
 	}
 
 	var cfg = &packages.Config{
@@ -151,19 +229,19 @@ func main() {
 		allTypes[typ] = struct{}{}
 	}
 
-	pkgs, err := packages.Load(cfg, dir)
+	loadPkg, err := packages.Load(cfg, dir)
 
-	if err != nil || len(pkgs) == 0 {
+	if err != nil || len(loadPkg) == 0 {
 		log.Fatal(err)
 	}
 
 	outBuffer.WriteString(fmt.Sprintf("// Code generated by \"filter %s\"; DO NOT EDIT.\n", *typeNames))
 
-	var pkg = pkgs[0]
+	var total uint64
+
+	var pkg = loadPkg[0]
 	log.Printf("package name:%v", pkg.Name)
 	outBuffer.WriteString(fmt.Sprintf("package %v", pkg.Name))
-	outBuffer.WriteByte('\n')
-	outBuffer.WriteString(`import "go.mongodb.org/mongo-driver/bson"`)
 	outBuffer.WriteByte('\n')
 	for _, file := range pkg.Syntax {
 		ast.Inspect(file, func(n ast.Node) bool {
@@ -180,18 +258,31 @@ func main() {
 				return true
 			}
 			for _, field := range st.Fields.List {
-				showSetFunction(ts.Name.Name, field)
+				if filterFunction(ts.Name.Name, field) {
+					atomic.AddUint64(&total, 1)
+				}
 			}
 			return len(allTypes) != 0
 		})
 	}
 
+	if atomic.LoadUint64(&total) == 0 {
+		log.Printf("not found valid filter function")
+		return
+	}
+
+	// format
 	dst, err := format.Source(outBuffer.Bytes())
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	err = os.WriteFile(*output, dst, fs.ModePerm)
+	// import
+	bs, err := imports.Process(*output, dst, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// write
+	err = os.WriteFile(*output, bs, fs.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
