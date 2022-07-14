@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 	"strconv"
@@ -119,9 +120,6 @@ func (j *JsonObject) Key() string {
 }
 
 func (j *JsonObject) FieldName() string {
-	if _, err := strconv.ParseFloat(j.KeyName, 64); err == nil {
-		return "N" + j.KeyName
-	}
 	return title(j.KeyName)
 }
 
@@ -151,9 +149,18 @@ func (j *JsonObject) Merge(src *JsonObject) error {
 
 func title(src string) string {
 	var ss = strings.Split(src, "_")
-	var ret strings.Builder
+	var ret = bytes.NewBuffer(nil)
 	for _, s := range ss {
 		ret.WriteString(strings.Title(s))
 	}
-	return ret.String()
+	//TODO 处理非法的标识符
+	var bs = ret.Bytes()
+	if len(bs) == 0 {
+		return ""
+	}
+	var first = bs[0]
+	if first >= 'A' && first <= 'Z' {
+		return ret.String()
+	}
+	return "F" + ret.String()
 }

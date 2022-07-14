@@ -128,6 +128,13 @@ const (
 		]
 	]
 	`
+
+	parse_data8 = `
+	{
+		"123.22": 1000,
+		"na.me": "123"
+	}
+	`
 )
 
 func TestParse(t *testing.T) {
@@ -153,6 +160,7 @@ func TestParse(t *testing.T) {
 		{"empty_slice5", parse_data5},
 		{"single_map", parse_data6},
 		{"multi_map", parse_data7},
+		{"invalid", parse_data8},
 	}
 
 	for _, c := range cases {
