@@ -1,4 +1,6 @@
-[来源](https://idersan.github.io/2017/06/11/%E7%94%9F%E6%88%90ssl%E8%AF%81%E4%B9%A6/)
+[生成过程](https://idersan.github.io/2017/06/11/%E7%94%9F%E6%88%90ssl%E8%AF%81%E4%B9%A6/)
+
+[openssl介绍](http://abcdxyzk.github.io/blog/2018/02/09/tools-openssl/)
 
 # 虚拟CA
 
