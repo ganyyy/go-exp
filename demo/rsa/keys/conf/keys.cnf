@@ -1,0 +1,17 @@
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+prompt = no
+[req_distinguished_name]   
+countryName            = CN
+stateOrProvinceName    = Beijing                  
+localityName           = Beijing                  
+postalCode             = 100022                   
+streetAddress          = S8L              
+organizationName       = happy          
+organizationalUnitName = Server_CA               
+emailAddress           = lalal@qq.com
+0.commonName           = localhost 
+[v3_req]
+keyUsage = keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
