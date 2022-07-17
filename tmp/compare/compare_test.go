@@ -4,8 +4,9 @@ import "testing"
 
 func TestCompareInterface(t *testing.T) {
 	var a, b any = 1, 20
-	var _, _ any = []int(nil), []int(nil)
+	var c, d any = []int(nil), []int(nil)
 
-	t.Log(a == b)
-	// t.Log(c == d)
+	t.Log(a == 1)
+	t.Log(b == a)
+	t.Log(c == d)
 }
