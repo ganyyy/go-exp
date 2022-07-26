@@ -24,12 +24,14 @@ func (p *PointerStruct) String() string {
 
 type PointerStruct2 struct {
 	UintPtr uintptr
+	Len     int
 }
 
 //go:noinline
 func (p *PointerStruct2) SetValue(v []byte) {
 	var head = (*reflect.SliceHeader)(unsafe.Pointer(&v))
 	p.UintPtr = head.Data
+	p.Len = head.Len
 }
 
 func (p *PointerStruct2) String() string {
