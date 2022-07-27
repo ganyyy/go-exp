@@ -1,14 +1,16 @@
 package client
 
 import (
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSetGet(t *testing.T) {
 	Init(&EtcdConfig{
-		Endpoints: []string{"http://localhost:2379"},
+		Endpoints: []string{"http://localhost:3379"},
 		Root:      "/root",
 	})
 
@@ -22,10 +24,22 @@ func TestSetGet(t *testing.T) {
 
 	var ret, _ = Get("/test", true)
 
-	assert.Equal(t, len(ret), 3)
-
 	for _, kv := range ret {
 		t.Logf("%+v", kv)
 	}
 
+	const WatchKey = "/test/temporary"
+
+	Watch(WatchKey, false)
+	Watch("/test", true)
+
+	for i := range Range(10) {
+		Put(WatchKey, "Val"+strconv.Itoa(i))
+		Put(WatchKey+"/last", "Val"+strconv.Itoa(i))
+		time.Sleep(time.Second)
+	}
+}
+
+func Range(n int) []struct{} {
+	return make([]struct{}, n)
 }

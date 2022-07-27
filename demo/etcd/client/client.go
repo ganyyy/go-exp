@@ -2,6 +2,9 @@ package client
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"strings"
 	"sync"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -77,4 +80,27 @@ func Get(key string, prefix bool) ([]KV, error) {
 		})
 	}
 	return ret, nil
+}
+
+func Watch(key string, prefix bool) {
+	var opts []clientv3.OpOption
+	if prefix {
+		opts = append(opts, clientv3.WithPrefix())
+	}
+	opts = append(opts, clientv3.WithPrevKV())
+	var watchChan = defaultClient.Watch(context.Background(), key, opts...)
+	go func() {
+		for msg := range watchChan {
+			var sb strings.Builder
+			sb.WriteString("Header:" + msg.Header.String())
+			sb.WriteByte('\t')
+			var allEvents []string
+			for _, e := range msg.Events {
+				allEvents = append(allEvents, fmt.Sprintf("{Type:%v, Kv:%v, PreKv:%v}", e.Type.String(), e.Kv.String(), e.PrevKv.String()))
+			}
+			sb.WriteString(strings.Join(allEvents, ","))
+			log.Printf("watch result:%+v", sb.String())
+		}
+	}()
+
 }
