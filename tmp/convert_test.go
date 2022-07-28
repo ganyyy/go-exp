@@ -44,3 +44,17 @@ func TestAssertI2I(t *testing.T) {
 func TestHTTP2(t *testing.T) {
 	HTTP2()
 }
+
+func TestZigzag(t *testing.T) {
+	var a int64 = -2
+	var zigA = (a << 1) ^ (a >> 63)
+	t.Log(a, zigA, (a << 1), (a >> 63))
+
+	// 0000 0100 +
+	// 1111 1100 = 1 0000 0000
+	// 0000 0001 +
+	// 1111 1111 = 1 0000 0000
+
+	// 1111 1111 ^
+	// 1111 1100 = 0000 0011
+}
