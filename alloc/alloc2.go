@@ -80,7 +80,7 @@ func showGCBitMap() {
 		_ int
 		_ *int
 		_ int
-	})) // {ptrdata： 8, gcdata Val:0b00000001}, size:24
+	})) // {ptrdata： 8, gcdata Val:0b00000010}, size:24
 
 	showTypeInfo(new(struct {
 		_ *int

@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	sliceStructGC()
+	showGCBitMap()
 }
 
 func writeBarrier() {

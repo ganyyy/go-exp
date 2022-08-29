@@ -2,6 +2,8 @@ package api_119
 
 import (
 	"fmt"
+	"hash/maphash"
+	"math/rand"
 	"runtime/debug"
 	"sync/atomic"
 	"testing"
@@ -36,6 +38,10 @@ func TestAtomic(t *testing.T) {
 	pc.Store(ov)
 
 	var v = pc.Load()
+
+	var pi atomic.Uint64
+	pi.Store(100)
+	pi.Load()
 
 	assert.Equal(t, v, ov)
 }
@@ -85,6 +91,12 @@ func BenchmarkLocal(b *testing.B) {
 		}
 	})
 }
+func TestMapHash(t *testing.T) {
+	var seed = maphash.MakeSeed()
 
-func TestSort(t *testing.T) {
+	var buf [16]byte
+	_, _ = rand.Read(buf[:])
+	for i := 0; i < 10; i++ {
+		t.Logf("src:%s, hash:%v", buf, maphash.Bytes(seed, buf[:]))
+	}
 }
