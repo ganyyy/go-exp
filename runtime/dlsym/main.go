@@ -7,6 +7,13 @@ package main
 #include <stdlib.h>
 #include <stdint.h>
 
+static uintptr_t pluginSelf(const char* path,char** err) {
+	void* h = dlopen(path, RTLD_NOW|RTLD_LOCAL);
+	if (h == NULL) {
+		*err = (char*)dlerror();
+	}
+	return (uintptr_t)h;
+}
 
 static uintptr_t pluginOpen(const char* path, char** err) {
 	void* h = dlopen(path, RTLD_NOW|RTLD_GLOBAL);
@@ -25,7 +32,7 @@ static void* pluginLookup(uintptr_t h, const char* name, char** err) {
 }
 
 static void* pluginMainLookup(const char* name, char** err) {
-	return pluginLookup(0, name, err);
+	return pluginLookup((uintptr_t)RTLD_MAIN_ONLY, name, err);
 }
 
 static int pluginClose(uintptr_t h, char** err) {
@@ -39,12 +46,18 @@ static int pluginClose(uintptr_t h, char** err) {
 import "C"
 
 import (
+	"flag"
 	"plugin"
 	"reflect"
 	"unsafe"
 )
 
+var (
+	fName = flag.String("f", "", "func name")
+)
+
 func main() {
+	flag.Parse()
 	// 必须要先执行 dlopen, 才可以查找符号表
 	var handler2, err = plugin.Open("./plugin.so")
 	println(err)
@@ -74,12 +87,12 @@ func main() {
 	// 	return
 	// }
 
-	var handler = C.pluginOpen((*C.char)(unsafe.Pointer(uintptr(0))), &cErr)
+	var handler = C.pluginSelf((*C.char)(unsafe.Pointer(uintptr(0))), &cErr)
 	if handler == 0 {
 		panic("cannot open plugin")
 	}
 
-	var name = []byte("main.Num")
+	var name = append([]byte("main.Num"), 0)
 	var num = C.pluginLookup(handler, (*C.char)(unsafe.Pointer(&name[0])), &cErr)
 	if num == nil {
 		println(C.GoString(cErr))
@@ -89,16 +102,21 @@ func main() {
 		println(*newNum, Num)
 		println(uintptr(num), uintptr(unsafe.Pointer(&Num)))
 	}
-	ShowFuncAddr(ff, "main.ForeachAdd")
+	fname := "main.ForeachAdd"
+	if len(*fName) != 0 {
+		fname = *fName
+	}
+	ShowFuncAddr(uint64(handler), nil, fname)
 }
 
-func ShowFuncAddr(fun interface{}, name string) {
+func ShowFuncAddr(handle uint64, fun interface{}, name string) {
 	var cErr *C.char
 	println("func:", name)
-	var funcName = []byte(name)
-	var addFunc = C.pluginMainLookup((*C.char)(unsafe.Pointer(&funcName[0])), &cErr)
+	var funcName = append([]byte(name), 0)
+	var addFunc = C.pluginLookup(C.ulong(handle), (*C.char)(unsafe.Pointer(&funcName[0])), &cErr)
 	if addFunc == nil {
 		println(C.GoString(cErr))
+		return
 	} else {
 		println("dlsym:", addFunc)
 	}
@@ -130,6 +148,7 @@ func Add(a, b int) int {
 }
 
 //go:noinline
+//export ForeachAdd
 func ForeachAdd(a int) int {
 	var ret int
 	for i := 0; i < a; i++ {
@@ -139,6 +158,7 @@ func ForeachAdd(a int) int {
 }
 
 //go:noinline
+//export TotalSum
 func TotalSum(a int) (ret int) {
 	for i := 0; i < a*2; i++ {
 		ret += 10
