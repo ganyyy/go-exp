@@ -32,7 +32,7 @@ static void* pluginLookup(uintptr_t h, const char* name, char** err) {
 }
 
 static void* pluginMainLookup(const char* name, char** err) {
-	return pluginLookup((uintptr_t)RTLD_MAIN_ONLY, name, err);
+	return pluginLookup((uintptr_t)0, name, err);
 }
 
 static int pluginClose(uintptr_t h, char** err) {
