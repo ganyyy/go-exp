@@ -1,0 +1,14 @@
+packagefile ganyyy.com/go-exp/runtime/tmp=./main.a
+packagefile ganyyy.com/go-exp/runtime/tmp/internal=./internal.a
+packagefile runtime=/Users/Gann/go/go1.19/pkg/darwin_amd64/runtime.a
+packagefile internal/abi=/Users/Gann/go/go1.19/pkg/darwin_amd64/internal/abi.a
+packagefile internal/bytealg=/Users/Gann/go/go1.19/pkg/darwin_amd64/internal/bytealg.a
+packagefile internal/cpu=/Users/Gann/go/go1.19/pkg/darwin_amd64/internal/cpu.a
+packagefile internal/goarch=/Users/Gann/go/go1.19/pkg/darwin_amd64/internal/goarch.a
+packagefile internal/goexperiment=/Users/Gann/go/go1.19/pkg/darwin_amd64/internal/goexperiment.a
+packagefile internal/goos=/Users/Gann/go/go1.19/pkg/darwin_amd64/internal/goos.a
+packagefile runtime/internal/atomic=/Users/Gann/go/go1.19/pkg/darwin_amd64/runtime/internal/atomic.a
+packagefile runtime/internal/math=/Users/Gann/go/go1.19/pkg/darwin_amd64/runtime/internal/math.a
+packagefile runtime/internal/sys=/Users/Gann/go/go1.19/pkg/darwin_amd64/runtime/internal/sys.a
+modinfo "0w\xaf\f\x92t\b\x02A\xe1\xc1\a\xe6\xd6\x18\xe6path\tganyyy.com/go-exp/runtime/tmp\nmod\tganyyy.com/go-exp\t(devel)\t\nbuild\t-compiler=gc\nbuild\tCGO_ENABLED=1\nbuild\tCGO_CFLAGS=\nbuild\tCGO_CPPFLAGS=\nbuild\tCGO_CXXFLAGS=\nbuild\tCGO_LDFLAGS=\nbuild\tGOARCH=amd64\nbuild\tGOOS=darwin\nbuild\tGOAMD64=v1\nbuild\tvcs=git\nbuild\tvcs.revision=eebb496224e2dbdcf2a647a62cbd5b651aacf9e4\nbuild\tvcs.time=2022-08-30T12:55:51Z\nbuild\tvcs.modified=true\n\xf92C1\x86\x18 r\x00\x82B\x10A\x16\xd8\xf2"
+

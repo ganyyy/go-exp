@@ -131,21 +131,21 @@ func main() {
 
 func findFieldType(expr ast.Expr) (tpName string, tpValid bool) {
 	switch typ := expr.(type) {
-	case (*ast.StarExpr):
+	case *ast.StarExpr:
 		// 指针类型
 		var val, ok = findFieldType(typ.X)
 		if !ok {
 			return
 		}
 		return "*" + val, true
-	case (*ast.ArrayType):
+	case *ast.ArrayType:
 		// 切片类型
 		var ele, ok = findFieldType(typ.Elt)
 		if !ok {
 			return
 		}
 		return "[]" + ele, true
-	case (*ast.MapType):
+	case *ast.MapType:
 		// 字典类型
 		var key, val string
 		var ok bool
@@ -158,10 +158,10 @@ func findFieldType(expr ast.Expr) (tpName string, tpValid bool) {
 			return
 		}
 		return "map[" + key + "]" + val, true
-	case (*ast.Ident):
+	case *ast.Ident:
 		// 通用类型(bool,float,int... etc)
 		return typ.Name, true
-	case (*ast.IndexExpr):
+	case *ast.IndexExpr:
 		// 单个泛型参数的泛型类型
 		var main, valid = findFieldType(typ.X)
 		if !valid {
@@ -172,7 +172,7 @@ func findFieldType(expr ast.Expr) (tpName string, tpValid bool) {
 			return
 		}
 		return main + "[" + param + "]", true
-	case (*ast.IndexListExpr):
+	case *ast.IndexListExpr:
 		// 多个泛型参数的泛型类型
 		var main, valid = findFieldType(typ.X)
 		if !valid {
@@ -190,7 +190,7 @@ func findFieldType(expr ast.Expr) (tpName string, tpValid bool) {
 			return
 		}
 		return main + "[" + strings.Join(params, ",") + "]", true
-	case (*ast.SelectorExpr):
+	case *ast.SelectorExpr:
 		var pkgName, pv = findFieldType(typ.X)
 		if !pv {
 			return

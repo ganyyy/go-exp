@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-func Test(t *testing.T) {
+func TestLock(t *testing.T) {
 	var lock sync.RWMutex
 
 	var start = time.Now()
 	var logf = func(info string) {
-		t.Logf("nowt %v, %s", time.Now().Sub(start), info)
+		t.Logf("nowt %v, %s", time.Since(start), info)
 	}
 
 	go func() {

@@ -1,0 +1,3 @@
+# import config
+packagefile ganyyy.com/go-exp/runtime/tmp/internal=./internal.a
+packagefile runtime=/Users/Gann/go/go1.19/pkg/darwin_amd64/runtime.a

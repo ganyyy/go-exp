@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"testing"
 	"unsafe"
 )
 
 type A struct {
 	name string
-	age  int
 	Name string
+	age  int
 }
 
 func unexportField() {
@@ -24,7 +25,6 @@ func unexportField() {
 		var ft = rt.Field(i)
 		if !ft.IsExported() {
 			if ft.Name == "name" {
-				// 不推荐这么搞, 中间可能会被GC
 				*(*string)(unsafe.Pointer(field.UnsafeAddr())) = "456789"
 			}
 			if ft.Name == "age" {
@@ -35,4 +35,9 @@ func unexportField() {
 		}
 		fmt.Println(field)
 	}
+	fmt.Println(a)
+}
+
+func TestUnexport(t *testing.T) {
+	unexportField()
 }
