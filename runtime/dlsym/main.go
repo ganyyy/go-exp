@@ -47,9 +47,14 @@ import "C"
 
 import (
 	"flag"
+	"fmt"
+	"patch"
 	"plugin"
 	"reflect"
+	"runtime"
 	"unsafe"
+
+	"ganyyy.com/go-exp/runtime/dlsym/pkg"
 )
 
 var (
@@ -58,6 +63,34 @@ var (
 
 func main() {
 	flag.Parse()
+
+	var hanler2, _ = plugin.Open("./plugin/plugin.so")
+
+	pAddr, _ := hanler2.Lookup("FuncAddr")
+	addr, _ := pAddr.(func() map[string]uintptr)
+
+	addrMap := addr()
+
+	f1, _ := hanler2.Lookup("Add")
+	f2, _ := hanler2.Lookup("Add2")
+
+	ff1, _ := f1.(func(int, int) int)
+	ff2, _ := f2.(func(int, int) int)
+
+	println(f1, f2)
+	println(ff1(10, 20), ff2(10, 20))
+
+	fmt.Println(runtime.FuncForPC(addrMap[pkg.FuncName(pkg.Add)]).Name())
+
+	fmt.Println(addrMap)
+
+	patch.Patch(unsafe.Pointer(addrMap["Add"]), unsafe.Pointer(addrMap["Add2"]))
+	println(uintptr(patch.FuncAddr(ff1)), uintptr(patch.FuncAddr(ff2)))
+
+	fmt.Println(pkg.FuncName(pkg.Add), pkg.FuncEntry(pkg.Add))
+}
+
+func oldDlsym() {
 	// 必须要先执行 dlopen, 才可以查找符号表
 	var handler2, err = plugin.Open("./plugin.so")
 	println(err)
