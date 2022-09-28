@@ -85,9 +85,10 @@ func main() {
 	fmt.Println(addrMap)
 
 	patch.Patch(unsafe.Pointer(addrMap["Add"]), unsafe.Pointer(addrMap["Add2"]))
-	println(uintptr(patch.FuncAddr(ff1)), uintptr(patch.FuncAddr(ff2)))
+	println(uintptr(patch.FuncAddr(f1)), uintptr(patch.FuncAddr(f2)))
+	println(uintptr(addrMap["Add"]), uintptr(addrMap["Add2"]))
+	println(ff1(10, 20), ff2(10, 20))
 
-	fmt.Println(pkg.FuncName(pkg.Add), pkg.FuncEntry(pkg.Add))
 }
 
 func oldDlsym() {
