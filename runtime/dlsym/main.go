@@ -77,6 +77,8 @@ func main() {
 	ff1, _ := f1.(func(int, int) int)
 	ff2, _ := f2.(func(int, int) int)
 
+	println(pkg.FuncName(TotalSum))
+
 	println(f1, f2)
 	println(ff1(10, 20), ff2(10, 20))
 
