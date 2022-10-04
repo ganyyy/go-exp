@@ -1,5 +1,3 @@
-//go:build ignore
-
 package main
 
 import (
@@ -10,7 +8,7 @@ import (
 	"time"
 )
 
-func main() {
+func deadBlock() {
 	var mutex sync.Mutex
 	runtime.SetMutexProfileFraction(1)
 	runtime.SetBlockProfileRate(1)

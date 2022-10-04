@@ -22,7 +22,10 @@ func alloc() int {
 //
 
 func main() {
+	deadBlock()
+}
 
+func allocProfile() {
 	var base, _ = os.Getwd()
 	log.Println(base)
 
