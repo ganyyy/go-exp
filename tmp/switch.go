@@ -2,10 +2,6 @@
 
 package main
 
-import (
-	"fmt"
-)
-
 type TestNoCopy struct {
 }
 
@@ -48,7 +44,6 @@ func ifFunc(a int) int {
 
 func main() {
 	var v int
-	_, _ = fmt.Scanf("%d", &v)
 	println(v)
 	println(switchFunc(v), ifFunc(v))
 }

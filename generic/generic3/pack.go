@@ -21,3 +21,23 @@ func UnpackSet[K comparable, S ~map[K]struct{}](set S) []K {
 	}
 	return ret
 }
+
+type SomeGeneric[T any] interface {
+	GetValue() T
+}
+
+type (
+	IntGeneric = SomeGeneric[int]
+)
+
+type IntBase struct{ V int }
+
+func (i *IntBase) GetValue() int { return i.V }
+
+func DoGeneric[T any](v SomeGeneric[T]) T {
+	return v.GetValue()
+}
+
+func DoIntGeneric(v IntGeneric) int {
+	return v.GetValue()
+}

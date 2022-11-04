@@ -23,7 +23,7 @@ func (m *MyLogger) Info(s string) {
 	log.Printf("[%s] %s", s, strings.Join(m.fields, ","))
 }
 
-//DoLogger 这是一个自引用接口, 可以做到完全的鸭子类型. 不需要任何侵入式导入
+// DoLogger 这是一个自引用接口, 可以做到完全的鸭子类型. 不需要任何侵入式导入
 func DoLogger[T Logger[T]](t T) {
 	t.WithField("1.18", "generic").Info("very good!")
 }

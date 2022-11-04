@@ -20,9 +20,9 @@ func TestMapReduce(t *testing.T) {
 	// 不知道咋回事, 太过深层次的函数调用无法自动推断
 	// 如果无法推断出类型, 那么就会编译失败
 	// 现在IDE的自动推断问题太大了, 我的评价是: 不如Rust
-	var ret = Reduce[int](
-		Filter[int](
-			Map[string, int](
+	var ret = Reduce(
+		Filter(
+			Map(
 				src,
 				func(v string) int {
 					var ret, _ = strconv.Atoi(v)
