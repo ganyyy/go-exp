@@ -8,6 +8,7 @@ use (
     ./tool/patch
     ./tool/json2go
     ./tool/goenum
+    ./tool/protoc-gen-go-handle
     //./work/bar
     //./work/foo
 )
