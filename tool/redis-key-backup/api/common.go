@@ -133,7 +133,7 @@ func (s SaveStruct) DoRestore(key string) error {
 		return err
 	}
 	if exists {
-		return errors.New(fmt.Sprintf("key %v exists", key))
+		return fmt.Errorf("key %v exists", key)
 	}
 
 	operation, err := GetOperation(s.KeyType)
@@ -144,9 +144,7 @@ func (s SaveStruct) DoRestore(key string) error {
 }
 
 func checkRedisError(err error) error {
-	if err == redis.Nil {
-		return nil
-	}
+	// fix race
 	return err
 }
 

@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"redis-key-backup/config"
 
@@ -21,6 +20,9 @@ func (l listOperation) Dump(client *redis.Client, key string) (string, error) {
 	if checkRedisError(err) != nil {
 		return "", err
 	}
+	if len(ret) == 0 {
+		return "", redis.Nil
+	}
 	bs, err := json.Marshal(listElements(ret))
 	return BytesToString(bs), err
 }
@@ -31,7 +33,9 @@ func (l listOperation) Restore(client *redis.Client, key string, val string) err
 	if err != nil {
 		return err
 	}
-
+	if len(elements) == 0 {
+		return redis.Nil
+	}
 	var args = make([]interface{}, 0, len(elements))
 	for _, ele := range elements {
 		args = append(args, ele)
@@ -43,7 +47,7 @@ func (l listOperation) Restore(client *redis.Client, key string, val string) err
 		return err
 	}
 	if int(n) != len(elements) {
-		return errors.New(fmt.Sprintf("elements len:%v, push num:%v", len(elements), n))
+		return fmt.Errorf("elements len:%v, push num:%v", len(elements), n)
 	}
 	return nil
 }

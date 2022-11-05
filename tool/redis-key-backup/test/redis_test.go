@@ -68,11 +68,23 @@ func TestRedisClient(t *testing.T) {
 	})
 
 	t.Run("nil key", func(t *testing.T) {
+		const NilKey = "nil_key"
 		{
-			const NilKey = "nil_key"
 			var ret, err = client.Get(context.Background(), NilKey).Result()
 			assert.Equal(t, err, redis.Nil)
 			assert.Equal(t, ret, "")
+			t.Logf("ret:%v, err:%v", ret, err)
+		}
+		{
+			var ret, err = client.LRange(context.Background(), NilKey, 0, -1).Result()
+			t.Logf("ret:%v, err:%v", ret, err)
+		}
+		{
+			var ret, err = client.ZRangeWithScores(context.Background(), NilKey, 0, -1).Result()
+			t.Logf("ret:%v, err:%v", ret, err)
+		}
+		{
+			var ret, err = client.HGetAll(context.Background(), NilKey).Result()
 			t.Logf("ret:%v, err:%v", ret, err)
 		}
 	})

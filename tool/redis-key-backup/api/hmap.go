@@ -20,6 +20,9 @@ func (h hMapOperation) Dump(client *redis.Client, key string) (string, error) {
 	if checkRedisError(err) != nil {
 		return "", err
 	}
+	if len(ret) == 0 {
+		return "", redis.Nil
+	}
 	var bs, _ = json.Marshal(ret)
 	return BytesToString(bs), nil
 }
@@ -29,6 +32,9 @@ func (h hMapOperation) Restore(client *redis.Client, key, val string) error {
 	err := json.Unmarshal(StringToBytes(val), &hash)
 	if err != nil {
 		return err
+	}
+	if len(hash) == 0 {
+		return redis.Nil
 	}
 	var args = make([]interface{}, 0, len(hash)*2)
 	for k, v := range hash {

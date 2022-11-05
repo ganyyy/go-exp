@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
@@ -22,6 +21,9 @@ func (z zSetOperation) Dump(client *redis.Client, key string) (string, error) {
 	if checkRedisError(err) != nil {
 		return "", err
 	}
+	if len(ret) == 0 {
+		return "", redis.Nil
+	}
 	var elemes = make([]zSetElement, 0, len(ret))
 	for _, v := range ret {
 		elemes = append(elemes, zSetElement{
@@ -39,6 +41,9 @@ func (z zSetOperation) Restore(client *redis.Client, key, val string) error {
 	if err != nil {
 		return err
 	}
+	if len(elements) == 0 {
+		return redis.Nil
+	}
 	var args = make([]*redis.Z, 0, len(elements))
 	for _, ele := range elements {
 		args = append(args, &redis.Z{
@@ -46,13 +51,12 @@ func (z zSetOperation) Restore(client *redis.Client, key, val string) error {
 			Member: ele.Mem,
 		})
 	}
-
 	n, err := client.ZAdd(context.Background(), key, args...).Result()
 	if err != nil {
 		return err
 	}
 	if int(n) != len(elements) {
-		return errors.New(fmt.Sprintf("data elements: %v, zadd elements:%v", len(elements), n))
+		return fmt.Errorf("data elements: %v, zadd elements:%v", len(elements), n)
 	}
 	return nil
 }
