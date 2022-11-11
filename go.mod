@@ -104,3 +104,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.3.2
 )
+
+
+replace (
+	//github.com/nats-io/nats.go v1.13.1-0.20220308171302-2f2f6968e98d => ./remote/nats.go
+)
