@@ -2,7 +2,10 @@ package test
 
 import (
 	"net/url"
+	"redis-key-backup/config"
 	"testing"
+
+	"github.com/urfave/cli"
 )
 
 func TestConfig_Parse(t *testing.T) {
@@ -18,4 +21,10 @@ func TestConfig_Parse(t *testing.T) {
 		parseUrl, err := url.Parse(str)
 		t.Logf("info:%+v, error:%v", parseUrl, err)
 	}
+}
+func TestFlagLength(t *testing.T) {
+	t.Logf("Len:%v, Cap:%v", len(config.RedisFlags), cap(config.RedisFlags))
+	after := append(config.RedisFlags, cli.StringFlag{})
+	t.Logf("Len:%v, Cap:%v", len(config.RedisFlags), cap(config.RedisFlags))
+	t.Logf("Len:%v, Cap:%v", len(after), cap(after))
 }
