@@ -58,7 +58,7 @@ func main() {
 		for i := 0; i < topicNum; i++ {
 			topic := genSubject(i)
 			_, e = pubNc.Subscribe(topic, func(msg *nats.Msg) {
-				log.Printf("topic publish data:%s", msg.Data)
+				log.Printf("topic %v publish data:%s", topic, msg.Data)
 			})
 			if e != nil {
 				log.Printf("sub %v error :%v", topic, e)
@@ -66,7 +66,7 @@ func main() {
 		}
 	}()
 	nc, e := nats.Connect(urls)
-	log.Println("pub connect:", e)
+	log.Println("pub connect error:", e)
 	for {
 		var b string
 		n, err := fmt.Scanf("%v", &b)
