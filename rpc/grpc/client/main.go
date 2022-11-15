@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"ganyyy.com/go-exp/rpc/grpc/logger"
 	"ganyyy.com/go-exp/rpc/grpc/proto"
 )
 
@@ -27,7 +28,7 @@ var (
 func main() {
 	flag.Parse()
 
-	// logger.SetGRPCLogger()
+	logger.SetGRPCLogger()
 
 	var keepParam = keepalive.ClientParameters{
 		Time:                10 * time.Second, // 没有活跃的情况下, 最长多久发一次心跳包
@@ -82,20 +83,22 @@ func main() {
 	var done = make(chan struct{})
 	var isClose = true
 
-	var connect = func() {
-		var idBuf [12]byte
-	next:
-		// 流的重连必须要手动实现
-		// rpc的重连可以自动实现
+	var retryConn func()
+
+	retryConn = func() {
 		time.Sleep(time.Second * 3)
+		var idBuf [12]byte
+		// 流的重连必须要手动实现
 		rand.Read(idBuf[:])
 		id := hex.EncodeToString(idBuf[:])
 		var ctx = context.Background()
 		ctx = metadata.AppendToOutgoingContext(ctx, "id", id)
+		log.Printf("[Stream:%v] start conn stream", id)
 		stream, dialError := client.HelloStream(ctx)
 		if dialError != nil {
 			log.Printf("[Stream:%v] dial error:%v, code:%v", id, dialError, status.Code(dialError))
-			goto next
+			go retryConn()
+			return
 		}
 		go func() {
 			for {
@@ -122,7 +125,8 @@ func main() {
 				sendErr := stream.Send(send)
 				if sendErr != nil {
 					log.Printf("[Stream:%v] send error %v, code:%v", id, sendErr, status.Code(sendErr))
-					goto next
+					go retryConn()
+					return
 				} else {
 					log.Printf("[Stream:%v] send:%v", id, send)
 				}
@@ -178,7 +182,7 @@ func main() {
 				}
 				isClose = false
 				done = make(chan struct{})
-				go connect()
+				go retryConn()
 			case "quit":
 				log.Printf("client quit")
 				return
