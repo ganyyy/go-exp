@@ -17,7 +17,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"ganyyy.com/go-exp/rpc/grpc/logger"
 	"ganyyy.com/go-exp/rpc/grpc/proto"
 )
 
@@ -28,7 +27,7 @@ var (
 func main() {
 	flag.Parse()
 
-	logger.SetGRPCLogger()
+	// logger.SetGRPCLogger()
 
 	var keepParam = keepalive.ClientParameters{
 		Time:                10 * time.Second, // 没有活跃的情况下, 最长多久发一次心跳包
@@ -54,6 +53,7 @@ func main() {
 		// 连接创建时可以带上,  但是如果错误不为空, 只要保证地址是正确的, 也可以继续用
 		// 阻塞式的情况下, 如果连接创建失败, 会返回一个空指针!
 		// grpc.WithReturnConnectionError(), // 返回链接本身的错误, 而非context的错误, 阻塞式的等待连接成功
+		// grpc.WithStatsHandler(logger.NewHandle("Client")),
 	)
 	if err != nil {
 		log.Printf("dial error:%v", err)
@@ -67,11 +67,11 @@ func main() {
 
 	var client = proto.NewGreeteClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
+	dialContext, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
 
 	var doRPC = func() {
-		rsp, err := client.SayHello(ctx, &proto.HelloRequest{
+		rsp, err := client.SayHello(dialContext, &proto.HelloRequest{
 			Name: "123131",
 		})
 		if err != nil {
@@ -80,24 +80,33 @@ func main() {
 			log.Printf("[SayHello]:%v", rsp.GetMessage())
 		}
 	}
-	var done = make(chan struct{})
 	var isClose = true
 
-	var retryConn func()
+	var retryConn func(ctx context.Context)
 
-	retryConn = func() {
+	var streamContext context.Context
+	var streamCancel context.CancelFunc
+
+	retryConn = func(ctx context.Context) {
+
+		select {
+		case <-ctx.Done():
+			log.Printf("[Stream] conn cancel")
+			return
+		default:
+		}
+
 		time.Sleep(time.Second * 3)
 		var idBuf [12]byte
 		// 流的重连必须要手动实现
 		rand.Read(idBuf[:])
 		id := hex.EncodeToString(idBuf[:])
-		var ctx = context.Background()
-		ctx = metadata.AppendToOutgoingContext(ctx, "id", id)
+		clientCtx := metadata.AppendToOutgoingContext(ctx, "id", id)
 		log.Printf("[Stream:%v] start conn stream", id)
-		stream, dialError := client.HelloStream(ctx)
-		if dialError != nil {
-			log.Printf("[Stream:%v] dial error:%v, code:%v", id, dialError, status.Code(dialError))
-			go retryConn()
+		stream, streamError := client.HelloStream(clientCtx)
+		if streamError != nil {
+			log.Printf("[Stream:%v] dial error:%v, code:%v", id, streamError, status.Code(streamError))
+			go retryConn(ctx)
 			return
 		}
 		go func() {
@@ -110,6 +119,8 @@ func main() {
 					} else {
 						// 其他情况, 需要确定具体的错误类型
 						log.Printf("[Stream:%v] recv error %v, code: %v", id, recvErr, status.Code(recvErr))
+						// 重试应该在读的时候处理, 因为写的控制不确定, 但是读一定会立刻崩溃
+						go retryConn(ctx)
 					}
 					return
 				}
@@ -125,12 +136,11 @@ func main() {
 				sendErr := stream.Send(send)
 				if sendErr != nil {
 					log.Printf("[Stream:%v] send error %v, code:%v", id, sendErr, status.Code(sendErr))
-					go retryConn()
 					return
 				} else {
 					log.Printf("[Stream:%v] send:%v", id, send)
 				}
-			case <-done:
+			case <-ctx.Done():
 				// 客户端必须要执行CloseSend用来关闭流
 				// 如果不关闭的话, 服务器会一直持有这个连接
 				sendErr := stream.CloseSend()
@@ -163,26 +173,27 @@ func main() {
 	for {
 		select {
 		case <-callTick.C:
-			doRPC()
 		case c, ok := <-cmd:
 			if !ok {
 				return
 			}
 			log.Printf("recv cmd:%s", c)
 			switch c {
+			case "c":
+				doRPC()
 			case "stream":
 				if isClose {
 					continue
 				}
 				isClose = true
-				close(done)
+				streamCancel()
 			case "reconn":
 				if !isClose {
 					continue
 				}
 				isClose = false
-				done = make(chan struct{})
-				go retryConn()
+				streamContext, streamCancel = context.WithCancel(context.Background())
+				go retryConn(streamContext)
 			case "quit":
 				log.Printf("client quit")
 				return

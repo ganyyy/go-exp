@@ -27,3 +27,32 @@ func TestRandNano(t *testing.T) {
 	}
 
 }
+
+func BenchmarkSliceIterator(b *testing.B) {
+
+	var data = make([]int, 100)
+
+	b.ResetTimer()
+
+	var cnt int
+	b.Run("Index", func(b *testing.B) {
+		data := data
+		for i := 0; i < b.N; i++ {
+			for i := len(data) - 1; i >= 0; i-- {
+				cnt += data[i]
+			}
+		}
+	})
+	cnt = 0
+
+	b.Run("Range", func(b *testing.B) {
+		data := data
+		for i := 0; i < b.N; i++ {
+			for _, v := range data {
+				cnt += v
+			}
+		}
+	})
+
+	_ = cnt
+}

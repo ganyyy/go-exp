@@ -39,7 +39,7 @@ func (s *Server) HelloStream(stream proto.Greete_HelloStreamServer) error {
 
 	var msgChan = make(chan *proto.HelloRequest, 100)
 
-	var done = make(chan struct{})
+	var ctx, cancel = context.WithCancel(context.Background())
 
 	go func() {
 		for {
@@ -50,7 +50,7 @@ func (s *Server) HelloStream(stream proto.Greete_HelloStreamServer) error {
 				} else {
 					log.Printf("%v recv close", id)
 				}
-				close(done)
+				cancel()
 				break
 			}
 			log.Printf("%v recv %v", id, msg)
@@ -78,11 +78,9 @@ end:
 				log.Printf("%v send error %v", id, err)
 				break end
 			}
-		case _, ok := <-done:
-			if !ok {
-				log.Printf("%v send done", id)
-				break end
-			}
+		case <-ctx.Done():
+			log.Printf("%v send done", id)
+			break end
 		}
 	}
 	// 服务器返回就意味着流的结束
@@ -118,6 +116,7 @@ func main() {
 	var server = grpc.NewServer(
 		grpc.KeepaliveParams(keepServer),
 		grpc.KeepaliveEnforcementPolicy(keepPolicy),
+		// grpc.StatsHandler(logger.NewHandle("Server")),
 	)
 	proto.RegisterGreeteServer(server, &Server{})
 	log.Printf("server listening at %v", lis.Addr())

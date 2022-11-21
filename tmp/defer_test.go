@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"testing"
 	"time"
 )
@@ -28,4 +29,18 @@ func TestTimeAfterPanic(t *testing.T) {
 	time.AfterFunc(time.Second, closure)
 
 	time.Sleep(time.Second * 2)
+}
+
+func TestGotoDefer(t *testing.T) {
+	var cnt int
+next:
+	if cnt > 10 {
+		return
+	}
+	defer func() {
+		log.Printf("count defer")
+	}()
+
+	cnt++
+	goto next
 }
