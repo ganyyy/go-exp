@@ -107,7 +107,7 @@ func main() {
 
 	var keepServer = keepalive.ServerParameters{
 		MaxConnectionIdle: time.Second * 10, // Idle连接的存活最大时长. 最近一次请求/连接建立成功中的最大值开始计算. 通过GoAway关闭
-		// MaxConnectionAge:      time.Second * 15, // 任何链接存活超过30s, 发送GoAway. 这个值有 +-10% 的浮动
+		// MaxConnectionAge:      time.Second * 15, // 任何链接存活超过15s, 发送GoAway. 这个值有 +-10% 的浮动
 		MaxConnectionAgeGrace: time.Second * 5, // 超过MaxConnectionAge(已发送GoAway), 剩余的最长等待的时间
 		Time:                  time.Second * 5, // 向空闲客户端发送Ping的时间间隔
 		Timeout:               time.Second,     // 空闲链接回复Ping的超时
@@ -116,7 +116,7 @@ func main() {
 	var server = grpc.NewServer(
 		grpc.KeepaliveParams(keepServer),
 		grpc.KeepaliveEnforcementPolicy(keepPolicy),
-		// grpc.StatsHandler(logger.NewHandle("Server")),
+		grpc.StatsHandler(logger.NewHandle("Server")),
 	)
 	proto.RegisterGreeteServer(server, &Server{})
 	log.Printf("server listening at %v", lis.Addr())
