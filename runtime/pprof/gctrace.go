@@ -22,7 +22,7 @@ func alloc() int {
 //
 
 func main() {
-	deadBlock()
+	someError()
 }
 
 func allocProfile() {
