@@ -59,7 +59,7 @@ end:
 
 func ticker(ctx context.Context) {
 	for {
-		ticker := time.NewTicker(time.Second)
+		ticker := time.NewTicker(time.Millisecond * 300)
 		select {
 		case <-ctx.Done():
 			return
@@ -85,9 +85,16 @@ func sendBlock(ctx context.Context) {
 }
 
 func someError() {
+
+	// 可以适当的降低一下采样的频率
+	const RATE = 16 << 10
+	runtime.MemProfileRate = RATE
+
 	var ctx, cancel = context.WithCancel(context.Background())
 
+	// 开启竞态检查
 	runtime.SetMutexProfileFraction(1)
+	// 开启阻塞检查
 	runtime.SetBlockProfileRate(1)
 
 	do(ctx, mutexBlock)

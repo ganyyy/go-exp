@@ -38,18 +38,28 @@ func TestMySql() {
 	}
 
 	var todo, cancel = context.WithCancel(context.TODO())
-	var conn, err = GetConn(todo)
-	if err != nil {
-		log.Panicf("Open Conn error:%v", err)
-	}
 	defer cancel()
-	defer func(conn *sql.Conn) {
-		err := conn.Close()
-		if err != nil {
-			log.Printf("Close error:%v", err)
+	// var conn, err = GetConn(todo)
+	// if err != nil {
+	// 	log.Panicf("Open Conn error:%v", err)
+	// }
+	// defer func(conn *sql.Conn) {
+	// 	err := conn.Close()
+	// 	if err != nil {
+	// 		log.Printf("Close error:%v", err)
+	// 	}
+	// }(conn)
+	var rows, err = DB.QueryContext(todo, "select now()")
+	if err != nil {
+		log.Printf("query error:%v", err)
+		return
+	}
+	defer func() {
+		closeErr := rows.Close()
+		if closeErr != nil {
+			log.Printf("close query row error %v", closeErr)
 		}
-	}(conn)
-	var rows, _ = conn.QueryContext(todo, "select now()")
+	}()
 	for rows.Next() {
 		var val string
 		_ = rows.Scan(&val)
