@@ -1,5 +1,8 @@
 package patch
 
+/*
+#include <stdlib.h>
+*/
 import "C"
 
 import (
@@ -13,16 +16,17 @@ type funcVal struct {
 }
 
 func toCString(str string) *C.char {
-	if len(str) == 0 {
-		return (*C.char)(NULL)
-	}
-	var name = append([]byte(str), 0) // 增加一个\0终止符
-	return (*C.char)(unsafe.Pointer(&name[0]))
+	return C.CString(str)
+}
+
+func freeCString(ptr *C.char) {
+	C.free(unsafe.Pointer(ptr))
 }
 
 var NULL = unsafe.Pointer((*int)(nil))
 
 func FuncAddr(fun interface{}) unsafe.Pointer {
 	var value = reflect.ValueOf(fun)
+	// unsafe.Pointer(runtime.FuncForPC(value.Pointer()).Entry())
 	return (*funcVal)(unsafe.Pointer(&value)).ptr
 }

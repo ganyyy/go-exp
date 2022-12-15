@@ -20,6 +20,7 @@ func PluginOpen(path string) (unsafe.Pointer, error) {
 	var cErr *C.char
 	var err error
 	var cPath = toCString(path)
+	defer freeCString(cPath)
 	var handler = C.pluginOpen(cPath, &cErr)
 	if handler == nil {
 		err = errors.New(C.GoString(cErr))
@@ -30,6 +31,8 @@ func PluginOpen(path string) (unsafe.Pointer, error) {
 func LookupSymbol(handler unsafe.Pointer, symbolName string) (unsafe.Pointer, error) {
 	var cErr *C.char
 	var err error
+	var cName = toCString(symbolName)
+	defer freeCString(symbolName)
 	var symbol = C.pluginLookup(handler, toCString(symbolName), &cErr)
 	if symbol == nil {
 		err = errors.New(C.GoString(cErr))

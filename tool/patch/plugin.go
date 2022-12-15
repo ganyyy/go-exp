@@ -5,6 +5,7 @@ package patch
 /*
 #cgo linux LDFLAGS: -ldl
 #include <dlfcn.h>
+#include <stdlib.h>
 */
 import "C"
 import (
@@ -26,12 +27,16 @@ func dlError() error {
 }
 
 func PluginOpen(path string) (unsafe.Pointer, error) {
-	var handler = C.dlopen(toCString(path), C.RTLD_GLOBAL|C.RTLD_NOW)
+	var cPath = toCString(path)
+	defer freeCString(cPath)
+	var handler = C.dlopen(cPath, C.RTLD_GLOBAL|C.RTLD_NOW)
 	return handler, dlError()
 }
 
 func LookupSymbol(handler unsafe.Pointer, symbolName string) (unsafe.Pointer, error) {
-	var pointer = C.dlsym(handler, toCString(symbolName))
+	var cName = toCString(symbolName)
+	defer freeCString(cName)
+	var pointer = C.dlsym(handler, cName)
 	return pointer, dlError()
 }
 
