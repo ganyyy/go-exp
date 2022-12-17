@@ -10,6 +10,25 @@ message HelloResponse {
     string message = 1;
 }
 
+message RepeatData {
+    message Data {
+        oneof data {
+            HelloRequest req = 1;
+            HelloResponse rsp = 2;
+        }
+    }
+    repeated Data data = 1;
+}
+
+message Common {
+    int32 code = 1;
+    bytes data = 2;
+}
+
+message BatchRequest {
+    repeated Common requests = 1;
+}
+
 service Greete {
     rpc SayHello (HelloRequest) returns (HelloResponse);
     rpc HelloStream (stream HelloRequest) returns (stream HelloResponse){};

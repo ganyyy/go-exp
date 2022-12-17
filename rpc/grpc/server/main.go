@@ -17,6 +17,36 @@ import (
 	"ganyyy.com/go-exp/rpc/grpc/proto"
 )
 
+type HandleReq struct{ *proto.HelloRequest }
+
+func (h *HandleReq) Handle() {}
+
+type HandleRsp struct{ *proto.HelloResponse }
+
+func (h *HandleRsp) Handle() {}
+
+type Handle interface{ Handle() }
+
+func HandleData(data proto.RepeatData) {
+
+	for _, msg := range data.GetData() {
+		var handle Handle
+		switch t := msg.GetData().(type) {
+		case *proto.RepeatData_Data_Req:
+			handle = &HandleReq{
+				HelloRequest: t.Req,
+			}
+		case *proto.RepeatData_Data_Rsp:
+			handle = &HandleRsp{
+				HelloResponse: t.Rsp,
+			}
+		}
+		if handle != nil {
+			handle.Handle()
+		}
+	}
+}
+
 type Server struct {
 	proto.UnimplementedGreeteServer
 }
