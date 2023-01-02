@@ -77,6 +77,7 @@ func (m *MemProfile) Start() *MemProfile {
 
 func (m *MemProfile) Done() {
 	_ = pprof.WriteHeapProfile(m.f)
+	_ = m.f.Close()
 }
 
 type HTTPProfile struct {
