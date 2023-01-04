@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -31,4 +32,61 @@ func TestSelectChannel(t *testing.T) {
 	close(quit)
 	time.Sleep(time.Second * 3)
 
+}
+
+func init() {
+	go func() {
+		var ticker = time.NewTicker(time.Millisecond * 100)
+		for {
+			select {
+			case t := <-ticker.C:
+				// println("nowt:", t.String())
+				v.Store(t.UnixNano())
+			}
+		}
+
+	}()
+
+	var nowt = time.Now()
+	v.Store(nowt.UnixNano())
+}
+
+var v atomic.Int64
+
+func BenchmarkTimeout(b *testing.B) {
+	var work = func() {
+		var v int
+		for i := 0; i < 1e3; i++ {
+			v += i
+		}
+		_ = v
+	}
+
+	_ = work
+
+	time.Sleep(time.Second)
+
+	// var next = time.Now().Add(time.Second)
+	b.Run("select", func(b *testing.B) {
+		var ch = make(chan int)
+		b.RunParallel(func(p *testing.PB) {
+			for p.Next() {
+				work()
+				select {
+				case <-ch:
+				default:
+				}
+			}
+		})
+	})
+	b.Run("timer", func(b *testing.B) {
+		var v int
+		b.RunParallel(func(p *testing.PB) {
+			for p.Next() {
+				work()
+				// v++
+				_ = v > 1000
+			}
+		})
+	})
 }
