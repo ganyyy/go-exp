@@ -71,7 +71,7 @@ func TestIndex(t *testing.T) {
 }
 
 var genId = func() uint {
-	return uint(rand.Uint64()%(MaxEID) + 1)
+	return uint(rand.Uint64() % (MaxEID))
 }
 
 func TestBitSet(t *testing.T) {
@@ -79,8 +79,9 @@ func TestBitSet(t *testing.T) {
 	var bs BitSet
 	for i := 0; i < 10000; i++ {
 		idx := Index(genId())
-		bs.Add(idx)
-		assert.True(t, bs.Contain(idx))
+		assert.Equal(t, bs.Contain(idx), bs.Add(idx))
+		assert.True(t, bs.Add(idx))
+		assert.True(t, bs.Remove(idx))
 	}
 }
 
