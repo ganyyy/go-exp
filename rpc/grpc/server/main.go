@@ -10,8 +10,10 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 
 	"ganyyy.com/go-exp/rpc/grpc/logger"
 	"ganyyy.com/go-exp/rpc/grpc/proto"
@@ -55,7 +57,7 @@ func (s *Server) SayHello(ctx context.Context, req *proto.HelloRequest) (*proto.
 	log.Printf("[SayHello] recv %v", req.String())
 	return &proto.HelloResponse{
 		Message: "Server" + req.GetName(),
-	}, nil
+	}, status.Errorf(codes.InvalidArgument, "%v", req)
 }
 
 func (s *Server) HelloStream(stream proto.Greete_HelloStreamServer) error {
