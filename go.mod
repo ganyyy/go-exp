@@ -1,6 +1,6 @@
 module ganyyy.com/go-exp
 
-go 1.19
+go 1.20
 
 require (
 	github.com/Shopify/go-lua v0.0.0-20220120202609-9ab779377807
@@ -103,9 +103,4 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.3.2
-)
-
-
-replace (
-	//github.com/nats-io/nats.go v1.13.1-0.20220308171302-2f2f6968e98d => ./remote/nats.go
 )
