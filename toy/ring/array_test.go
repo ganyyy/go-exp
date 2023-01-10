@@ -2,10 +2,61 @@ package ring
 
 import (
 	"math"
+	"reflect"
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func BenchmarkAppend(b *testing.B) {
+
+	const S = 1000
+
+	gen := func(SIZE int) []int {
+		var arr = make([]int, 0, SIZE)
+		for i := 0; i < SIZE; i++ {
+			arr = append(arr, i)
+		}
+		return arr
+	}
+	getHeader := func(arr []int) uintptr {
+		header := (*reflect.SliceHeader)(unsafe.Pointer(&arr))
+		return header.Data
+	}
+	_ = getHeader
+	b.Run("in place", func(b *testing.B) {
+		arr := gen(S)
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			arr = CopyAppend(arr, i)
+		}
+		// b.Logf("%v, %X", cap(arr), getHeader(arr))
+	})
+	b.Run("append", func(b *testing.B) {
+		arr := gen(S)
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			arr = ReSliceAppend(arr, i)
+		}
+		// b.Logf("%v, %X", cap(arr), getHeader(arr))
+	})
+	b.Run("Copy", func(b *testing.B) {
+		const CAP = S
+		arr := gen(CAP)
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			copy(arr, arr[1:])
+			arr[CAP-1] = i
+		}
+	})
+	b.Run("Ring", func(b *testing.B) {
+		var buffer = NewArrayRing[int](S)
+		for i := 0; i < b.N; i++ {
+			buffer.Add(i)
+		}
+	})
+}
 
 func TestArrayRing(t *testing.T) {
 	const SIZE = 10
@@ -123,11 +174,4 @@ func TestArrayRing(t *testing.T) {
 		}
 		t.Logf("%+v, %v", buffer, buffer.Copy())
 	})
-}
-
-func BenchmarkRingAdd(b *testing.B) {
-	var buffer = NewArrayRing[int](10)
-	for i := 0; i < b.N; i++ {
-		buffer.Add(i)
-	}
 }

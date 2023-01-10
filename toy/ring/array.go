@@ -15,49 +15,48 @@ const (
 	initIndex = -1
 )
 
-func NewArrayRing[T any](capacity int32) Ring[T] {
+func NewArrayRing[T any](capacity int32) *ArrayRing[T] {
 	if capacity <= 0 {
 		panic("invalid capicity")
 	}
-	var arr = &arrayRing[T]{
+	var arr = &ArrayRing[T]{
 		buffer: make([]T, capacity),
 	}
 	arr.resetIndex()
 	return arr
 }
 
-type arrayRing[T any] struct {
+type ArrayRing[T any] struct {
 	read   int // 读指针, 表示读取的位置, 0开始.
 	write  int // 写指针, 最后一次写入的位置, 起始值是initIndex
 	buffer []T
 }
 
 // Add 添加一个新元素 批量插入的性能较差(耗时多一倍), 还是用
-func (a *arrayRing[T]) Add(ele T) {
+func (a *ArrayRing[T]) Add(ele T) {
 	// if len(ele) <= 0 {
 	// 	return
 	// }
 	var write = a.write
 	var read = a.read
-	var ln = a.bufferLen()
+	var ln = len(a.buffer)
 	// if len(ele) >= ln {
 	// 	ele = ele[len(ele)-ln:]
 	// }
 	// for _, e := range ele {
 	// 首个位置需要特殊处理一下
-	isFirst := write == initIndex
-	write = (write + 1) % ln
-	a.buffer[write] = ele
-	if !isFirst && read == write {
+	if write != initIndex && read == write {
 		read = (read + 1) % ln
 	}
+	write = (write + 1) % ln
+	a.buffer[write] = ele
 	// }
 	a.read = read
 	a.write = write
 }
 
 // Clear 重置整个ring
-func (a *arrayRing[T]) Clear() {
+func (a *ArrayRing[T]) Clear() {
 	if a.write == initIndex {
 		return
 	}
@@ -70,13 +69,13 @@ func (a *arrayRing[T]) Clear() {
 	a.resetIndex()
 }
 
-func (a *arrayRing[T]) resetIndex() {
+func (a *ArrayRing[T]) resetIndex() {
 	a.read = 0
 	a.write = initIndex
 }
 
 // Copy 浅拷贝元素的切片
-func (a *arrayRing[T]) Copy() []T {
+func (a *ArrayRing[T]) Copy() []T {
 	var ret = make([]T, 0, a.Len())
 	a.Range(func(t T) bool {
 		ret = append(ret, t)
@@ -86,7 +85,7 @@ func (a *arrayRing[T]) Copy() []T {
 }
 
 // Get 获取指定位置的元素, -1表示最后一个, 0表示第一个
-func (a *arrayRing[T]) Get(idx int) (T, bool) {
+func (a *ArrayRing[T]) Get(idx int) (T, bool) {
 	var ln = a.Len()
 	if idx < 0 {
 		idx = ln + idx
@@ -99,7 +98,7 @@ func (a *arrayRing[T]) Get(idx int) (T, bool) {
 }
 
 // Range 迭代切片, 返回false则不会继续迭代
-func (a *arrayRing[T]) Range(cb func(T) bool) {
+func (a *ArrayRing[T]) Range(cb func(T) bool) {
 	if cb == nil || a.Len() <= 0 {
 		return
 	}
@@ -129,7 +128,7 @@ func (a *arrayRing[T]) Range(cb func(T) bool) {
 	iter(a.buffer[:write+1])
 }
 
-func (a *arrayRing[T]) Len() int {
+func (a *ArrayRing[T]) Len() int {
 	write := a.write
 	if write == initIndex {
 		return 0
@@ -144,11 +143,11 @@ func (a *arrayRing[T]) Len() int {
 	return ln - read + write + 1
 }
 
-func (a *arrayRing[T]) bufferLen() int {
+func (a *ArrayRing[T]) bufferLen() int {
 	return len(a.buffer)
 }
 
-func (a *arrayRing[T]) Top() (ele T, ok bool) {
+func (a *ArrayRing[T]) Top() (ele T, ok bool) {
 	if a.Len() == 0 {
 		a.Clear()
 		return
@@ -156,7 +155,7 @@ func (a *arrayRing[T]) Top() (ele T, ok bool) {
 	return a.Get(0)
 }
 
-func (a *arrayRing[T]) Pop() (ele T, ok bool) {
+func (a *ArrayRing[T]) Pop() (ele T, ok bool) {
 	ele, ok = a.Top()
 	if !ok {
 		return
