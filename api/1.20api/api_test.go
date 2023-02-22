@@ -32,20 +32,32 @@ func TestTimeFormat(t *testing.T) {
 
 func TestArena(t *testing.T) {
 	a := arena.NewArena()
-	defer a.Free()
-	var memStat runtime.MemStats
-	runtime.ReadMemStats(&memStat)
-	for i := 0; i < 2<<10; i++ {
-		_ = arena.New[int](a)
+	log := func(from string, before runtime.MemStats) runtime.MemStats {
+		var after runtime.MemStats
+		runtime.ReadMemStats(&after)
+		t.Logf("[%s] total alloc:%v", from, int(after.TotalAlloc)-int(before.TotalAlloc))
+		return after
 	}
-	var after runtime.MemStats
-	runtime.ReadMemStats(&after)
+	var memStat = log("init", runtime.MemStats{})
+	var tmp []*int
+	var tmp2 []int
+	for i := 0; i < 2<<10; i++ {
+		tmp = append(tmp, arena.New[int](a))
+	}
+	memStat = log("new int", memStat)
+	tmp2 = arena.MakeSlice[int](a, 100, 2000)
+	memStat = log("new slice", memStat)
+	runtime.GC()
+	runtime.GC()
+	memStat = log("alloc gc", memStat)
+	a.Free()
+	memStat = log("free", memStat)
+	runtime.GC()
+	runtime.GC()
+	log("free gc", memStat)
 
-	arena.MakeSlice[int](a, 100, 200)
-
-	t.Logf("total alloc:%v", after.TotalAlloc-memStat.TotalAlloc)
-	// t.Logf("before:%+v", memStat)
-	// t.Logf("after:%+v", after)
+	runtime.KeepAlive(tmp)
+	runtime.KeepAlive(tmp2)
 }
 
 func Error[T error](es ...T) string {

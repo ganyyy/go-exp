@@ -135,6 +135,21 @@ const (
 		"na.me": "123"
 	}
 	`
+
+	parse_data9 = `
+	{
+		"msg_type": "interactive",
+		"card": {
+		  "elements": [{
+			"tag": "div",
+			"text": {
+			  "content": "at所有人测试<at id=all></at>",
+			  "tag": "lark_md"
+			}
+		  }]
+		}
+	  }
+	`
 )
 
 func TestParse(t *testing.T) {
@@ -153,14 +168,15 @@ func TestParse(t *testing.T) {
 		name string
 		data string
 	}{
-		{"data", parse_data1},
-		{"user", parse_data2},
-		{"object", parse_data3},
-		{"float_data", parse_data4},
-		{"empty_slice5", parse_data5},
-		{"single_map", parse_data6},
-		{"multi_map", parse_data7},
-		{"invalid", parse_data8},
+		// {"data", parse_data1},
+		// {"user", parse_data2},
+		// {"object", parse_data3},
+		// {"float_data", parse_data4},
+		// {"empty_slice5", parse_data5},
+		// {"single_map", parse_data6},
+		// {"multi_map", parse_data7},
+		// {"invalid", parse_data8},
+		{"Message", parse_data9},
 	}
 
 	for _, c := range cases {

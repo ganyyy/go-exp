@@ -71,9 +71,8 @@ func main() {
 	defer cancel()
 
 	var doRPC = func() {
-		rsp, err := client.SayHello(dialContext, &proto.HelloRequest{
-			Name: "123131",
-		})
+		var req = proto.HelloRequest{Name: "123131"}
+		rsp, err := client.SayHello(dialContext, &req)
 		if err != nil {
 			log.Printf("[SayHello]:%v, code:%v", err, status.Code(err))
 		} else {
