@@ -48,12 +48,12 @@ import "C"
 import (
 	"flag"
 	"fmt"
-	"patch"
 	"plugin"
 	"reflect"
 	"runtime"
 	"unsafe"
 
+	"ganyyy.com/go-exp/patch"
 	"ganyyy.com/go-exp/runtime/dlsym/pkg"
 )
 

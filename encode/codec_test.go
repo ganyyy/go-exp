@@ -16,6 +16,8 @@ func TestCodec(t *testing.T) {
 		Empty int    `codec:"-"`
 	}
 
+	codec.
+
 	var buf = bytes.NewBuffer(nil)
 	var encoder = codec.NewEncoder(buf, &codec.MsgpackHandle{})
 	var decoder = codec.NewDecoder(buf, &codec.MsgpackHandle{})
