@@ -91,6 +91,7 @@ require (
 	github.com/nats-io/nats.go v1.13.1-0.20220308171302-2f2f6968e98d
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1
+	github.com/quasilyte/go-ruleguard/dsl v0.3.22
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/ugorji/go/codec v1.2.6
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
