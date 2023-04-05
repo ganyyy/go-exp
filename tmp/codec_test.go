@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/ugorji/go/codec"
+
+	_ "github.com/ugorji/go"
 )
 
 func TestCodec(t *testing.T) {
