@@ -1,3 +1,3 @@
-module patch
+module ganyyy.com/go-exp/patch
 
-go 1.18
+go 1.20

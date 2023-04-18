@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
-	"patch"
 	"plugin"
+
+	"ganyyy.com/go-exp/patch"
 )
 
 //go:noinline

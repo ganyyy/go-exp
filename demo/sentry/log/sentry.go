@@ -14,8 +14,6 @@ func init() {
 		Debug:            false,
 		AttachStacktrace: true,
 		SampleRate:       0,
-		TracesSampleRate: 0,
-		TracesSampler:    nil,
 		ServerName:       "",
 		Release:          "",
 		Dist:             "",

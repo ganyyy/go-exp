@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -33,6 +33,6 @@ func HTTP2() {
 	}
 	defer resp.Body.Close()
 
-	var ret, _ = ioutil.ReadAll(resp.Body)
+	var ret, _ = io.ReadAll(resp.Body)
 	log.Printf("%s", string(ret))
 }

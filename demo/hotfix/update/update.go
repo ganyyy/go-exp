@@ -5,12 +5,13 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"patch"
 	"plugin"
 	"reflect"
 	"strings"
 	"syscall"
 	"unsafe"
+
+	"ganyyy.com/go-exp/patch"
 )
 
 const (

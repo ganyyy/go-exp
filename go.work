@@ -1,15 +1,14 @@
-go 1.18
-
+go 1.20
 
 use (
-    .
-    ./tool/p2p
-    ./tool/redis-key-backup
-    ./tool/patch
-    ./tool/json2go
-    ./tool/goenum
-    ./tool/protoc-gen-go-handle
-    //./remote/nats.go
-    //./work/bar
-    //./work/foo
+	.
+	./tool/p2p
+	./tool/redis-key-backup
+	./tool/patch
+	./tool/json2go
+	./tool/goenum
+	./tool/protoc-gen-go-handle
+//./remote/nats.go
+//./work/bar
+//./work/foo
 )
