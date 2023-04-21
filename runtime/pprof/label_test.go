@@ -52,12 +52,12 @@ func TestGoroutineLabel(t *testing.T) {
 	wg.Add(10)
 	var ctx = context.Background()
 	for i := 0; i < 10; i++ {
-		go func(i int) {
-			defer wg.Done()
-			var labelCtx = pprof.WithLabels(ctx, pprof.Labels(ID, strconv.Itoa(i)))
-			pprof.SetGoroutineLabels(labelCtx)
-			worker(labelCtx)
-		}(i)
+		pprof.Do(ctx, pprof.Labels(ID, strconv.Itoa(i)), func(ctx context.Context) {
+			go func(i int) {
+				defer wg.Done()
+				worker(ctx)
+			}(i)
+		})
 	}
 	time.Sleep(1 * time.Second)
 	pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
