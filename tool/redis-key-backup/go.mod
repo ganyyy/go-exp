@@ -6,7 +6,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/stretchr/testify v1.7.1
 	github.com/urfave/cli v1.22.5
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 )
 
 require (

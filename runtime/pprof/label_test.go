@@ -6,11 +6,12 @@ import (
 	"os"
 	"runtime/pprof"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 )
 
-const ID = "GoId"
+const ID = "FuncName"
 
 func doWithGoroutineId(ctx context.Context, id int, f func(context.Context)) {
 	go pprof.Do(
@@ -23,7 +24,7 @@ func doWithGoroutineId(ctx context.Context, id int, f func(context.Context)) {
 func worker(ctx context.Context) {
 	id, ok := pprof.Label(ctx, ID)
 	log.Printf("go id:%v, find:%v", id, ok)
-	time.Sleep(time.Minute * 5)
+	time.Sleep(time.Second * 5)
 }
 
 func TestLabel(t *testing.T) {
@@ -44,4 +45,23 @@ func TestLabel(t *testing.T) {
 	}
 
 	time.Sleep(time.Second * 3)
+}
+
+func TestGoroutineLabel(t *testing.T) {
+	var wg sync.WaitGroup
+	wg.Add(10)
+	var ctx = context.Background()
+	for i := 0; i < 10; i++ {
+		go func(i int) {
+			defer wg.Done()
+			var labelCtx = pprof.WithLabels(ctx, pprof.Labels(ID, strconv.Itoa(i)))
+			pprof.SetGoroutineLabels(labelCtx)
+			worker(labelCtx)
+		}(i)
+	}
+	time.Sleep(1 * time.Second)
+	pprof.Lookup("goroutine").WriteTo(os.Stdout, 1)
+	wg.Wait()
+	id, ok := pprof.Label(ctx, ID)
+	t.Logf("go id:%v, find:%v", id, ok)
 }
