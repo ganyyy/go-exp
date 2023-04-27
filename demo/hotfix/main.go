@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -31,8 +32,12 @@ func Empty(a, b, c int) int {
 func main() {
 	go update.RunUpdateMonitor()
 	var src = []int{1, 2, 3, 4, 5}
+	var data Data
+	var idx int
 	for {
 		time.Sleep(time.Second)
-		println("main src: ", Min(src))
+		data.SetA(idx)
+		idx++
+		fmt.Println("main src: ", Min(src), " data:", data)
 	}
 }

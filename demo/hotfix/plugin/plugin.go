@@ -4,6 +4,8 @@ import "math/rand"
 
 var Version string
 
+var Data MyData
+
 func init() {
 	println("load plugin:", Version)
 }
@@ -11,7 +13,7 @@ func init() {
 //go:noinline
 func Sum3(src []int) int {
 	var v = rand.Int()
-	println("lissss 666:", v)
+	println("lissss 777:", v)
 	return 0
 }
 
@@ -26,8 +28,18 @@ func Add(a, b, c int) int {
 	return a * b * c * 2
 }
 
-//Exchange: newFunc, oldFunc
+// Exchange: newFunc, oldFunc
 var Exchange = map[string]string{
-	"Sum3": "main.Min",
+	"Sum3":        "main.Min",
+	"MyData_SetA": "main.(*Data).SetA",
 	// "Add": "main.Empty",
+}
+
+type MyData struct {
+	A, B, C, D int
+}
+
+func MyData_SetA(m *MyData, a int) {
+	m.B = a + 10
+	m.C = a + 20
 }

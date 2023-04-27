@@ -24,6 +24,22 @@ const (
 	ExchangeSymbol = "Exchange"
 )
 
+type Plugin struct {
+	pluginpath string
+	err        string        // set if plugin failed to load
+	loaded     chan struct{} // closed when loaded
+	syms       map[string]any
+}
+
+// ShowPlugin Plugin data
+func ShowPlugin(pp *plugin.Plugin) {
+	var p = (*Plugin)(unsafe.Pointer(pp))
+	log.Printf("plugin %v, error %v", p.pluginpath, p.err)
+	for k, v := range p.syms {
+		log.Printf("plugin symbol %v, value %v", k, v)
+	}
+}
+
 type backSymbol struct {
 	back []byte
 	name string
@@ -82,6 +98,9 @@ func loadPlugin() {
 		log.Printf("load %v error:%v", pluginName, err)
 		return
 	}
+
+	// 输出插件相关的信息
+	// ShowPlugin(handler)
 
 	// 加载主函数表
 	mainHandler, err = patch.PluginOpen("")
