@@ -32,7 +32,7 @@ func PluginOpen(path string) (unsafe.Pointer, error) {
 		cPath = toCString(path)
 		defer freeCString(cPath)
 	}
-	var handler = C.dlopen(cPath, C.RTLD_LOCAL|C.RTLD_NOW)
+	var handler = C.dlopen(cPath, C.RTLD_GLOBAL|C.RTLD_NOW)
 	return handler, dlError()
 }
 
