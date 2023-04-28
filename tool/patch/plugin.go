@@ -27,9 +27,12 @@ func dlError() error {
 }
 
 func PluginOpen(path string) (unsafe.Pointer, error) {
-	var cPath = toCString(path)
-	defer freeCString(cPath)
-	var handler = C.dlopen(cPath, C.RTLD_GLOBAL|C.RTLD_NOW)
+	var cPath *C.char
+	if path != "" {
+		cPath = toCString(path)
+		defer freeCString(cPath)
+	}
+	var handler = C.dlopen(cPath, C.RTLD_LOCAL|C.RTLD_NOW)
 	return handler, dlError()
 }
 

@@ -8,6 +8,6 @@ NAME="plugin_$(date +%s).so"
 
 echo "${NAME}"
 
-go build --buildmode=plugin -gcflags=-l  -trimpath -ldflags "-X 'main.Version=${NAME}'" -o "$NAME" plugin.go
+go build --buildmode=plugin -gcflags="-l"  -trimpath -ldflags "-X 'main.Version=${NAME}'" -o "$NAME" plugin.go
 
 echo "${NAME}" > ./version
