@@ -1,20 +1,20 @@
 package main
 
-type Data struct {
+type iData struct {
 	A int
 	B int
 	C int
 	D int
 }
 
-func (d *Data) GetA() int { return d.A }
-func (d *Data) GetB() int { return d.B }
-func (d *Data) GetC() int { return d.C }
-func (d *Data) GetD() int { return d.D }
-
-func (d *Data) SetA(a int) { d.A = a }
+func (d *iData) SetA(a int) { d.A = a }
 
 //go:noinline
-func (d *Data) SetB(b int)  { d.B = b }
-func (d *Data) SetC(c int)  { d.C = c }
-func (d *Data) SetD(d1 int) { d.D = d1 }
+func (d *iData) SetB(b int)  { d.B = b }
+func (d *iData) SetC(c int)  { d.C = c }
+func (d *iData) SetD(d1 int) { d.D = d1 }
+
+func (d *iData) GetA() int { return d.A }
+func (d *iData) GetB() int { return d.B }
+func (d *iData) GetC() int { return d.C }
+func (d *iData) GetD() int { return d.D }

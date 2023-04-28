@@ -31,7 +31,7 @@ func Add(a, b, c int) int {
 // Exchange: newFunc, oldFunc
 var Exchange = map[string]string{
 	"Sum3":        "main.Min",
-	"MyData_SetA": "main.(*Data).SetA",
+	"MyData_SetA": "main.(*iData).SetA",
 	// "Add": "main.Empty",
 }
 

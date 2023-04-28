@@ -32,7 +32,7 @@ func Empty(a, b, c int) int {
 func main() {
 	go update.RunUpdateMonitor()
 	var src = []int{1, 2, 3, 4, 5}
-	var data Data
+	var data iData
 	var idx int
 	for {
 		time.Sleep(time.Second)
