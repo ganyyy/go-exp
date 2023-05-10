@@ -5,7 +5,7 @@
 
 static void* pluginOpen(const char *path, char **err)
 {
-    void *h = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+    void *h = dlopen(path, RTLD_NOW | RTLD_LOCAL);
     if (h == NULL)
     {
         *err = (char *)dlerror();

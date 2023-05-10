@@ -17,6 +17,8 @@ func init() {
 	println("run in go mode")
 }
 
+const ()
+
 func dlError() error {
 	var reason = C.dlerror()
 	if reason == nil {
@@ -32,7 +34,9 @@ func PluginOpen(path string) (unsafe.Pointer, error) {
 		cPath = toCString(path)
 		defer freeCString(cPath)
 	}
-	var handler = C.dlopen(cPath, C.RTLD_GLOBAL|C.RTLD_NOW)
+	// 优化: 通过RTLD_LOCAL|RTLD_NOW, 可以将符号表的搜索范围限制在当前模块内
+	// 注意: 不能使用 RTLD_DEFAULT, 替代 dlopen(NULL, ...), 因为 RTLD_DEFAULT 会导致全局符号表的搜索
+	var handler = C.dlopen(cPath, C.RTLD_LOCAL|C.RTLD_NOW)
 	return handler, dlError()
 }
 
