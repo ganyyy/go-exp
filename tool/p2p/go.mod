@@ -1,3 +1,3 @@
 module p2p
 
-go 1.18
+go 1.20
