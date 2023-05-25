@@ -7,6 +7,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRedisClient(t *testing.T) {
@@ -88,4 +89,34 @@ func TestRedisClient(t *testing.T) {
 			t.Logf("ret:%v, err:%v", ret, err)
 		}
 	})
+}
+
+func TestRedisFunction(t *testing.T) {
+	var client = config.GetClient()
+
+	const script = `#!lua name=mylib
+local function hset(keys, args)
+	return "Hello Redis 7.0"
+end
+
+redis.register_function('my_hset', hset)
+	`
+
+	msg, err := client.FunctionLoad(context.Background(), script).Result()
+	if redis.HasErrorPrefix(err, "Library 'mylib' already exists") {
+		err = nil
+	}
+	t.Logf("msg:%v, err:%v", msg, err)
+	require.Nil(t, err)
+
+	ret, err := client.FCall(context.Background(), "my_hset", []string{"0"}, "hello").Result()
+	t.Logf("ret:%v, err:%v", ret, err)
+	require.Nil(t, err)
+}
+
+func BenchmarkFuncCall(b *testing.B) {
+	var client = config.GetClient()
+	for i := 0; i < b.N; i++ {
+		_, _ = client.FCall(context.Background(), "my_hset", []string{"0"}, "hello").Result()
+	}
 }
