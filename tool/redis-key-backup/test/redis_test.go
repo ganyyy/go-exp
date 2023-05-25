@@ -5,7 +5,7 @@ import (
 	"redis-key-backup/config"
 	"testing"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -54,10 +54,10 @@ func TestRedisClient(t *testing.T) {
 
 		{
 			const Key = "rank"
-			ret, _ := client.ZAdd(back, Key, &redis.Z{
+			ret, _ := client.ZAdd(back, Key, redis.Z{
 				Score:  100,
 				Member: "123",
-			}, &redis.Z{
+			}, redis.Z{
 				Score:  200,
 				Member: "123131",
 			}).Result()

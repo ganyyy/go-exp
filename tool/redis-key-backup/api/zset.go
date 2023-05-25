@@ -6,7 +6,7 @@ import (
 
 	"context"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"redis-key-backup/config"
 )
@@ -45,9 +45,9 @@ func (z zSetOperation) Restore(client *redis.Client, key, val string) error {
 	if len(elements) == 0 {
 		return redis.Nil
 	}
-	var args = make([]*redis.Z, 0, len(elements))
+	var args = make([]redis.Z, 0, len(elements))
 	for _, ele := range elements {
-		args = append(args, &redis.Z{
+		args = append(args, redis.Z{
 			Score:  ele.Score,
 			Member: ele.Mem,
 		})

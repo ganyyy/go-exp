@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -103,9 +103,9 @@ func (t testHmap) Equal(tt *testing.T, v1, v2 string) bool {
 type testZSet struct{ testBase }
 
 func (t testZSet) Prepare() error {
-	var args = make([]*redis.Z, 0, Num)
+	var args = make([]redis.Z, 0, Num)
 	loopNum(func(i int) {
-		args = append(args, &redis.Z{
+		args = append(args, redis.Z{
 			Score:  float64(rand.Int() % 100),
 			Member: "mem" + strconv.Itoa(i),
 		})
