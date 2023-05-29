@@ -1,6 +1,19 @@
 package main
 
-import "math/rand"
+import (
+	"ganyyy.com/go-exp/demo/hotfix/plugin/fix"
+
+	_ "unsafe"
+)
+
+var (
+	Show = fix.Show
+	_    = fix.Sum3
+)
+
+func Sum3(src []int) int {
+	return fix.Sum3(src)
+}
 
 var Version string
 
@@ -8,19 +21,6 @@ var Data MyData
 
 func init() {
 	println("load plugin:", Version)
-}
-
-//go:noinline
-func Sum3(src []int) int {
-	var v = rand.Int()
-	println("lissss 777:", v)
-	return 0
-}
-
-//go:noinline
-func Show(a, b, c, d, e, f, g int) {
-	var v = rand.Int()
-	println("in plugin 3333:", a, b, c, d, e, f, g, v)
 }
 
 //go:noinline
@@ -42,4 +42,5 @@ type MyData struct {
 func MyData_SetA(m *MyData, a int) {
 	m.B = a + 10
 	m.C = a + 20
+	println("in plugin MyData_SetA:", a, m.B, m.C)
 }

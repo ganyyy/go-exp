@@ -117,6 +117,8 @@ func loadPlugin() {
 		}
 	}()
 
+	ShowPlugin(handler)
+
 	// 加载替换函数列表
 
 	var symbolMap map[string]string
