@@ -5,7 +5,6 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -26,9 +25,9 @@ func main() {
 	defer buf.Flush()
 
 	var urls = strings.Join([]string{
-		"localhost:4222",
-		// "localhost:4223",
-		// "localhost:4224",
+		"localhost:4225",
+		"localhost:4223",
+		"localhost:4224",
 	}, ",")
 
 	nc, e := nats.Connect(urls)
@@ -39,7 +38,8 @@ func main() {
 		buf.WriteByte('\n')
 	})
 
-	for i := 0; i < 30; i++ {
+	var sendBuf = make([]byte, 6291456+1024)
+	for i := 0; i < 10; i++ {
 		go func(i int) {
 			time.Sleep(time.Millisecond * time.Duration(rand.Intn(30)) * 100)
 			nc, e := nats.Connect(urls)
@@ -47,11 +47,16 @@ func main() {
 			var cnt int
 			for {
 				cnt++
-				nc.Publish(subject, []byte(strconv.Itoa(i)+":"+strconv.Itoa(cnt)))
-				time.Sleep(time.Millisecond * 100)
+				sendErr := nc.Publish(subject, sendBuf[:])
+				if sendErr != nil {
+					log.Println(i, sendErr)
+				} else {
+					log.Println(i, "success")
+				}
+				time.Sleep(time.Second)
 			}
 		}(i)
 	}
 
-	time.Sleep(time.Minute)
+	time.Sleep(time.Minute * 20)
 }
