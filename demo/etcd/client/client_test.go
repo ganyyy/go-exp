@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"strconv"
 	"testing"
 	"time"
@@ -10,13 +11,11 @@ import (
 
 func TestSetGet(t *testing.T) {
 	Init(&EtcdConfig{
-		Endpoints: []string{"http://localhost:3379"},
+		Endpoints: []string{"http://localhost:2379"},
 		Root:      "/root",
 	})
 
 	assert.Nil(t, initError)
-
-	defer Stop()
 
 	Put("/test/v1", "123")
 	Put("/test/v2", "456")
@@ -33,7 +32,7 @@ func TestSetGet(t *testing.T) {
 	Watch(WatchKey, false)
 	Watch("/test", true)
 
-	for i := range Range(10) {
+	for i := range Range(5) {
 		Put(WatchKey, "Val"+strconv.Itoa(i))
 		Put(WatchKey+"/last", "Val"+strconv.Itoa(i))
 		time.Sleep(time.Second)
@@ -42,4 +41,45 @@ func TestSetGet(t *testing.T) {
 
 func Range(n int) []struct{} {
 	return make([]struct{}, n)
+}
+
+func TestCAS(t *testing.T) {
+	Init(&EtcdConfig{
+		Endpoints: []string{"http://localhost:2379"},
+		Root:      "/root",
+	})
+
+	defaultClient.Delete(context.Background(), "/test/cas")
+
+	valid, newVal, err := CAS("/test/cas", "456", "")
+	assert.Nil(t, err)
+	assert.True(t, valid)
+	assert.Equal(t, "456", newVal)
+
+	valid, newVal, err = CAS("/test/cas", "789", "456")
+	assert.Nil(t, err)
+	assert.True(t, valid)
+	assert.Equal(t, "789", newVal)
+
+	valid, newVal, err = CAS("/test/cas", "459", "788")
+	assert.Nil(t, err)
+	assert.False(t, valid)
+	assert.Equal(t, "789", newVal)
+}
+
+func TestNX(t *testing.T) {
+	Init(&EtcdConfig{
+		Endpoints: []string{"http://localhost:2379"},
+		Root:      "/root",
+	})
+
+	defaultClient.Delete(context.Background(), "/test/nx")
+
+	valid, err := SetNX("/test/nx", "456")
+	assert.Nil(t, err)
+	assert.True(t, valid)
+
+	valid, err = SetNX("/test/nx", "456")
+	assert.Nil(t, err)
+	assert.False(t, valid)
 }

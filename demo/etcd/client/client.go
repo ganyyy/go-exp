@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"go.etcd.io/etcd/api/v3/etcdserverpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -103,4 +104,61 @@ func Watch(key string, prefix bool) {
 		}
 	}()
 
+}
+
+func CAS(key, val, oldVal string) (bool, string, error) {
+	var resp, err = defaultClient.Txn(context.Background()).If(
+		// 比较版本是否为0
+		clientv3.Compare(clientv3.Version(key), "=", 0),
+	).Then(
+		clientv3.OpPut(key, val),
+	).Else(
+		// 如果失败了, 则比较值是否为oldVal
+		clientv3.OpTxn(
+			[]clientv3.Cmp{
+				clientv3.Compare(clientv3.Value(key), "=", oldVal),
+			},
+			[]clientv3.Op{
+				clientv3.OpPut(key, val),
+			},
+			[]clientv3.Op{
+				clientv3.OpGet(key),
+			},
+		),
+	).Commit()
+	if err != nil {
+		return false, "", err
+	}
+	if !resp.Succeeded {
+		// 失败了, 获取ETCD中的值
+		switch op := resp.Responses[0].GetResponse().(type) {
+		case *etcdserverpb.ResponseOp_ResponseTxn:
+			if !op.ResponseTxn.Succeeded {
+				return false, string(op.ResponseTxn.GetResponses()[0].GetResponseRange().GetKvs()[0].Value), nil
+			} else {
+				return true, val, nil
+			}
+		default:
+			return false, "", fmt.Errorf("unknown response type:%T", op)
+		}
+	}
+	// 成功了, 那么返回的值就是val
+	return true, val, nil
+}
+
+func SetNX(key, val string) (bool, error) {
+	var resp, err = defaultClient.Txn(context.Background()).If(
+		clientv3.Compare(clientv3.Version(key), "=", 0),
+	).Then(
+		clientv3.OpPut(key, val),
+	).Else(
+		clientv3.OpGet(key),
+	).Commit()
+	if err != nil {
+		return false, err
+	}
+	if !resp.Succeeded {
+		return false, nil
+	}
+	return true, nil
 }
