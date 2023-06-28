@@ -1,11 +1,12 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"math"
 	"os"
 	"runtime"
-	"strings"
+	"strconv"
 	"testing"
 
 	"log/slog"
@@ -60,22 +61,30 @@ func (m *MyHandler) Handle(ctx context.Context, r slog.Record) error {
 	var pcs [16]uintptr
 	n := runtime.Callers(4, pcs[:])
 	frames := runtime.CallersFrames(pcs[:n])
-	var stack []string
+	var sb = bytes.NewBuffer(nil)
+	var buf [24]byte
 	for {
 		frame, more := frames.Next()
-		stack = append(stack, frame.Function)
+		sb.WriteString(frame.Function)
+		sb.WriteByte('\n')
+		sb.WriteByte('\t')
+		sb.WriteString(frame.File)
+		sb.WriteByte(':')
+		nb := strconv.AppendInt(buf[:0], int64(frame.Line), 10)
+		sb.Write(nb)
+		sb.WriteByte('\n')
 		if !more {
 			break
 		}
 	}
-	r.AddAttrs(slog.String("stack", strings.Join(stack, "\n")))
+	r.AddAttrs(slog.String("stack", sb.String()))
 	return m.log.Handle(ctx, r)
 }
 
-func dfsCall(i int) int {
+func iter(i int) int {
 	if i < 10 {
 		slog.Debug("dfs call", slog.Int("i", i))
-		return dfsCall(i + 1)
+		return iter(i + 1)
 	}
 	slog.Error("dfs call end!", slog.Int("i", i))
 	return i
@@ -94,5 +103,5 @@ func TestSLog(t *testing.T) {
 	l = l.WithGroup("test").With(slog.String("name", "123"), slog.Int("age", 10))
 	l.Debug("group test", slog.String("name", "456"))
 	slog.SetDefault(l)
-	dfsCall(0)
+	iter(0)
 }
