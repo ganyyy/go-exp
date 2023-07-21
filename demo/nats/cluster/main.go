@@ -23,11 +23,11 @@ var urls = strings.Join([]string{
 func main() {
 
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		AddSource: false,
+		AddSource: true,
 		Level:     slog.LevelDebug,
 	})))
 
-	forQueueSub()
+	forNatsCallback()
 
 	// nc, e := nats.Connect(urls)
 	// _ = nc

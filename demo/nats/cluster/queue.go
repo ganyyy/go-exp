@@ -14,19 +14,53 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
+func createNatsConn(url string, log *slog.Logger) (*nats.Conn, error) {
+	if log == nil {
+		log = slog.Default()
+	}
+	return nats.Connect(url,
+		nats.DisconnectHandler(func(c *nats.Conn) {
+			log.Info("disconnect nats",
+				slog.String("url", c.ConnectedAddr()))
+		}),
+		nats.DisconnectErrHandler(func(c *nats.Conn, _ error) {
+			log.Info("disconnect nats with error",
+				slog.String("url",
+					c.ConnectedAddr()),
+				slog.Any("err", c.LastError()))
+		}),
+		nats.ConnectHandler(func(c *nats.Conn) {
+			log.Info("connect nats",
+				slog.String("url", c.ConnectedAddr()))
+		}),
+		nats.ReconnectHandler(func(c *nats.Conn) {
+			log.Info("reconnect nats",
+				slog.String("url", c.ConnectedAddr()))
+		}),
+		nats.ClosedHandler(func(c *nats.Conn) {
+			log.Info("close nats",
+				slog.String("url", c.ConnectedAddr()))
+		}),
+		nats.ErrorHandler(func(c *nats.Conn, s *nats.Subscription, err error) {
+			log.Info("nats error",
+				slog.String("url", c.ConnectedAddr()),
+				slog.Any("err", err),
+				slog.String("subject", s.Subject))
+		}),
+	)
+}
+
 func forQueueSub() {
 	const (
 		connNum = 10
 		subj    = "test.cluster.subj"
 		queue   = "QUEUE"
 	)
-	createNatsConn := func(url string) (*nats.Conn, error) {
-		return nats.Connect(url)
-	}
+
 	var closeChan = make(chan struct{})
 	var allConn = make([]*nats.Conn, 0, connNum)
 	for i := 0; i < connNum; i++ {
-		nc, e := createNatsConn(urls)
+		nc, e := createNatsConn(urls, nil)
 		if e != nil {
 			slog.Error("connect nats error", slog.String("err", e.Error()))
 			continue
