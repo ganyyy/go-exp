@@ -15,7 +15,7 @@ func init() {
 // Exchange: newFunc, oldFunc
 var Exchange = map[string]string{
 	"Sum3":        "main.Min",
-	"MyData_SetA": "main.(*iData).SetA",
+	"MyData_SetA": "ganyyy.com/go-exp/demo/hotfix/common.(*Data).SetA",
 	// "Add": "main.Empty",
 }
 

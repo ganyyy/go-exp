@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"math"
+	"net/http"
+	_ "net/http/pprof"
 	"time"
 
+	"ganyyy.com/go-exp/demo/hotfix/common"
 	"ganyyy.com/go-exp/demo/hotfix/update"
 )
 
@@ -31,13 +34,14 @@ func Empty(a, b, c int) int {
 
 func main() {
 	go update.RunUpdateMonitor()
+	go func() { _ = http.ListenAndServe("localhost:8899", nil) }()
 	var src = []int{1, 2, 3, 4, 5}
-	var data iData
+	var data common.Data
 	var idx int
 	for {
 		time.Sleep(time.Second)
 		data.SetA(idx)
 		idx++
-		fmt.Println("main src: ", Min(src), " data:", data)
+		fmt.Printf("main src:  %v, %+v\n", Min(src), data)
 	}
 }

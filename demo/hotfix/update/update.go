@@ -206,8 +206,10 @@ func RunUpdateMonitor() {
 	for sig := range sigChan {
 		switch sig {
 		case syscall.SIGUSR1:
+			log.Println("reload plugin")
 			loadPlugin()
 		case syscall.SIGUSR2:
+			log.Println("restore plugin")
 			restorePlugin()
 		}
 	}
