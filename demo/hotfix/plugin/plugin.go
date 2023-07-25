@@ -6,26 +6,10 @@ import (
 	_ "unsafe"
 )
 
-var (
-	Show = fix.Show
-	_    = fix.Sum3
-)
-
-func Sum3(src []int) int {
-	return fix.Sum3(src)
-}
-
 var Version string
-
-var Data MyData
 
 func init() {
 	println("load plugin:", Version)
-}
-
-//go:noinline
-func Add(a, b, c int) int {
-	return a * b * c * 2
 }
 
 // Exchange: newFunc, oldFunc
@@ -35,12 +19,12 @@ var Exchange = map[string]string{
 	// "Add": "main.Empty",
 }
 
-type MyData struct {
-	A, B, C, D int
+// 替换函数实现
+
+func Sum3(src []int) int {
+	return fix.Sum3(src)
 }
 
-func MyData_SetA(m *MyData, a int) {
-	m.B = a + 10
-	m.C = a + 20
-	println("in plugin MyData_SetA:", a, m.B, m.C)
+func MyData_SetA(m *fix.MyData, a int) {
+	m.SetA(a)
 }

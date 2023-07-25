@@ -1,6 +1,8 @@
 package patch
 
-import "unsafe"
+import (
+	"unsafe"
+)
 
 func Patch(src, dst unsafe.Pointer) {
 	var toBytes = jmpToGoFn(uintptr(dst))
