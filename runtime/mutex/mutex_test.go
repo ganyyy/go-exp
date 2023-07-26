@@ -34,3 +34,38 @@ func TestMutex(t *testing.T) {
 	}
 
 }
+
+func Test_SyncConv(t *testing.T) {
+
+	var lock sync.Mutex
+	var cond = sync.NewCond(&lock)
+
+	var cnt int
+
+	for i := 0; i < 10; i++ {
+		go func(i int) {
+			for {
+				lock.Lock()
+				for cnt == 0 {
+					cond.Wait()
+				}
+				t.Log(i, "wait cnt", cnt)
+				cnt--
+				lock.Unlock()
+			}
+		}(i)
+	}
+
+	go func() {
+		for {
+			lock.Lock()
+			cond.Broadcast()
+			cnt++
+			t.Log("signal")
+			lock.Unlock()
+			time.Sleep(time.Second)
+		}
+	}()
+
+	time.Sleep(time.Second * 10)
+}
