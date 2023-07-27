@@ -61,7 +61,6 @@ func TestX8664(t *testing.T) {
 	}
 	// 这个第三方库, 采用类似于orm的形式, 将汇编逻辑转变成二进制字节码
 	// 注意: 立即数得是64位的数(数值的字面量需要大于math.MaxInt32), 否则指令会被优化.
-	// 还没研究 间接跳转, 这里都是直接跳转
 	// 这里建议只修改目标寄存器, MOVQ和JMPQ的目标寄存器都需要修改
 	{
 		var p x86_64.Program
@@ -70,8 +69,24 @@ func TestX8664(t *testing.T) {
 	}
 
 	{
+		// 直接寻址
 		var p x86_64.Program
 		p.JMPQ(x86_64.RDX)
+		pp(p.AssembleAndFree(0))
+	}
+
+	{
+		var p x86_64.Program
+		// 间接寻址
+		p.JMPQ(&x86_64.MemoryOperand{
+			Size: 8,
+			Addr: x86_64.Addressable{
+				Type: x86_64.Memory,
+				Memory: x86_64.MemoryAddress{
+					Base: x86_64.RDX,
+				},
+			},
+		})
 		pp(p.AssembleAndFree(0))
 	}
 }
