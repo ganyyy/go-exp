@@ -12,3 +12,11 @@ func ReSliceAppend(arr []int, v int) []int {
 	arr = append(arr, v)
 	return arr
 }
+
+func Fill[T any](n int, v T) []T {
+	var arr = make([]T, n)
+	for i := range arr {
+		arr[i] = v
+	}
+	return arr
+}
