@@ -1,26 +1,41 @@
 package timewheel_test
 
 import (
+	"math"
+	"runtime"
 	"testing"
-	"unsafe"
-
-	"github.com/go-playground/assert/v2"
 )
 
-var srcSource = []string{
-	"1",
-	"2",
+func panicIfError(n *Data) {
+	if n.A < 0 {
+		panic("error")
+	}
 }
 
-var group = [][]string{
-	{"1", "2"},
-	{"1", "1", "2", "2"},
-	{"1", "1", "1", "2", "2", "2"},
+type Data struct {
+	A int
 }
 
 func Test123(t *testing.T) {
-	var src uint64
-	var cnt [8]uint8
+	defer func() {
+		if err := recover(); err != nil {
+			var _stack [10]uintptr
+			n := runtime.Callers(0, _stack[:])
+			stack := _stack[:n]
+			for i := 0; i < len(stack); i++ {
+				f := runtime.FuncForPC(stack[i])
+				file, line := f.FileLine(stack[i])
+				t.Logf("%x %s:%d %s\n", stack[i], file, line, f.Name())
+			}
+		}
+	}()
+	panicIfError(nil)
 
-	assert.Equal(t, src, *(*uint64)(unsafe.Pointer(&cnt[0])))
+}
+
+func TestOOM(t *testing.T) {
+	var mem = make([]byte, math.MaxInt32<<8)
+
+	_ = mem
+
 }
