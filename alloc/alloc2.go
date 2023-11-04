@@ -54,6 +54,11 @@ func showTypeInfo(t interface{}) {
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
+	if typ.Kind() == reflect.Array {
+		elem := reflect.ValueOf(t).Elem().Index(0).Addr().Pointer()
+		elem2 := reflect.ValueOf(t).Elem().Index(1).Addr().Pointer()
+		fmt.Println("element addr:", elem, elem2)
+	}
 	var dd = (*rtype)((*iface)(unsafe.Pointer(&typ)).data)
 	fmt.Printf("%10s:{ptrdata: %2d, gcdata Val:0b%08b}, size:%v\n", typ.Name(), dd.ptrdata, *dd.gcdata, typ.Size())
 	_ = dd
@@ -69,6 +74,9 @@ func showGCInfo() {
 	showTypeInfo(s)
 }
 
+var global interface{}
+var global2 interface{}
+
 func showGCBitMap() {
 
 	//showTypeInfo(new(PtrStruct1))
@@ -76,11 +84,23 @@ func showGCBitMap() {
 	//showTypeInfo(new(PtrStruct3))
 	//showTypeInfo(new(PtrStruct4))
 
-	showTypeInfo(new(struct {
+	var d = new([(0x28000 / 2)]struct {
 		_ int
 		_ *int
+	})
+
+	global = d
+
+	showTypeInfo(d) // {ptrdata： 8, gcdata Val:0b00000010}, size:24
+
+	d2 := new([1 << 5]struct {
 		_ int
-	})) // {ptrdata： 8, gcdata Val:0b00000010}, size:24
+		_ *int
+	})
+
+	showTypeInfo(d2)
+
+	global2 = d2
 
 	showTypeInfo(new(struct {
 		_ *int
@@ -122,4 +142,7 @@ func showGCBitMap() {
 		_ *byte
 		_ int
 	})) // {ptrdata：40, gcdata Val:0b00010101}, size:48
+
+	showTypeInfo(global)
+	showTypeInfo(global2)
 }

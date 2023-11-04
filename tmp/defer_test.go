@@ -37,9 +37,9 @@ next:
 	if cnt > 10 {
 		return
 	}
-	defer func() {
-		log.Printf("count defer")
-	}()
+	defer func(i int) {
+		log.Printf("count defer %v", i)
+	}(cnt)
 
 	cnt++
 	goto next
