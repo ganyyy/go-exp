@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 	"unsafe"
 )
 
@@ -50,11 +49,12 @@ func (i arenaIdx) l2() uint {
 
 }
 
+func showInfo(p uintptr) {
+	var idx = arenaIndex(p)
+	fmt.Printf("p:%#016x, p-Offset: %#016x, idx:%#016x l1:%#016x, l2:%#016x\n", p, p-arenaBaseOffset, idx, idx.l1(), idx.l2())
+}
+
 func showAddr() {
-	var showInfo = func(p uintptr) {
-		var idx = arenaIndex(p)
-		fmt.Printf("p:%016X, p-Offset: %016X, idx:%016X l1:%016X, l2:%016X\n", p, p-arenaBaseOffset, idx, idx.l1(), idx.l2())
-	}
 
 	// var val = GetVal()
 
@@ -71,6 +71,7 @@ func showAddr() {
 	// showInfo(max)
 
 	m := make([]byte, 64<<20)
-	showInfo(uintptr((*reflect.SliceHeader)(unsafe.Pointer(&m)).Data))
-	showInfo(uintptr((*reflect.SliceHeader)(unsafe.Pointer(&m)).Data + 64<<20))
+
+	showInfo(uintptr(unsafe.Pointer(unsafe.SliceData(m))))
+	showInfo(uintptr(unsafe.Pointer(unsafe.SliceData(m))))
 }

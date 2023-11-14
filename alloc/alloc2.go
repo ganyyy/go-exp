@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"runtime"
+	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -50,6 +53,7 @@ type iface struct {
 }
 
 func showTypeInfo(t interface{}) {
+	return
 	var typ = reflect.TypeOf(t)
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
@@ -57,10 +61,12 @@ func showTypeInfo(t interface{}) {
 	if typ.Kind() == reflect.Array {
 		elem := reflect.ValueOf(t).Elem().Index(0).Addr().Pointer()
 		elem2 := reflect.ValueOf(t).Elem().Index(1).Addr().Pointer()
-		fmt.Println("element addr:", elem, elem2)
+		showInfo(elem)
+		showInfo(elem2)
+		fmt.Printf("element addr: 0x%x 0x%x\n", elem, elem2)
 	}
 	var dd = (*rtype)((*iface)(unsafe.Pointer(&typ)).data)
-	fmt.Printf("%10s:{ptrdata: %2d, gcdata Val:0b%08b}, size:%v\n", typ.Name(), dd.ptrdata, *dd.gcdata, typ.Size())
+	fmt.Printf("%10s:{ptrdata: %2d, gcdata Val:0b%08b}, size:%v\n", typ.String(), dd.ptrdata, *dd.gcdata, typ.Size())
 	_ = dd
 }
 
@@ -77,30 +83,53 @@ func showGCInfo() {
 var global interface{}
 var global2 interface{}
 
+//go:noinline
+func makeSomeObject() any {
+	return &[50]struct {
+		_ int
+		_ *int
+		_ int
+	}{}
+}
+
 func showGCBitMap() {
 
-	//showTypeInfo(new(PtrStruct1))
+	addr, err := syscall.Mmap(-1, 0, 1<<20, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_ANON|syscall.MAP_PRIVATE)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("the addr is: %p\n", unsafe.Pointer(unsafe.SliceData(addr)))
+
+	showTypeInfo(new(PtrStruct1))
 	//showTypeInfo(new(PtrStruct2))
 	//showTypeInfo(new(PtrStruct3))
 	//showTypeInfo(new(PtrStruct4))
 
-	var d = new([(0x28000 / 2)]struct {
-		_ int
-		_ *int
-	})
+	// var d = new([(0x28000 / 2)]struct {
+	// 	a int
+	// 	b *int
+	// })
 
-	global = d
+	var obj = makeSomeObject()
 
-	showTypeInfo(d) // {ptrdata： 8, gcdata Val:0b00000010}, size:24
+	runtime.GC()
+	runtime.GC()
+	time.Sleep(time.Second * 5)
 
-	d2 := new([1 << 5]struct {
-		_ int
-		_ *int
-	})
+	// global = d
 
-	showTypeInfo(d2)
+	// showTypeInfo(d) // {ptrdata： 8, gcdata Val:0b00000010}, size:24
 
-	global2 = d2
+	// d2 := new([1 << 5]struct {
+	// 	_ int
+	// 	_ *int
+	// })
+
+	// showTypeInfo(d2)
+
+	// global2 = d2
 
 	showTypeInfo(new(struct {
 		_ *int
@@ -143,6 +172,26 @@ func showGCBitMap() {
 		_ int
 	})) // {ptrdata：40, gcdata Val:0b00010101}, size:48
 
-	showTypeInfo(global)
-	showTypeInfo(global2)
+	runtime.GC()
+	runtime.GC()
+	time.Sleep(time.Second * 5)
+
+	global = obj
+	// showTypeInfo(global)
+	// showTypeInfo(global2)
+
+	fmt.Println("GC 3")
+	runtime.GC()
+	runtime.GC()
+	time.Sleep(time.Second * 5)
+
+	fmt.Println("GC 4")
+	runtime.GC()
+	runtime.GC()
+	time.Sleep(time.Second * 5)
+
+	fmt.Println("GC 5")
+	runtime.GC()
+	runtime.GC()
+	time.Sleep(time.Second * 5)
 }
