@@ -5,7 +5,8 @@ import (
 	"testing"
 )
 
-func TestSync(t *testing.T) {
+func TestOnce(t *testing.T) {
+
 	f := sync.OnceFunc(func() {
 		t.Log("once")
 	})
@@ -14,6 +15,20 @@ func TestSync(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		go func() {
 			f()
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	v := sync.OnceValue[int](func() int {
+		t.Logf("once value")
+		return 1
+	})
+
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func() {
+			t.Log(v())
 			wg.Done()
 		}()
 	}

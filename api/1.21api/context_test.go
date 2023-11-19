@@ -6,6 +6,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestContext(t *testing.T) {
@@ -57,7 +59,7 @@ func TestContext2(t *testing.T) {
 		})
 		// 这个顺序会执行after func
 		cancel()
-		fn()
+		assert.False(t, fn())
 	}
 
 	// 这个顺序不会执行after func
@@ -66,7 +68,7 @@ func TestContext2(t *testing.T) {
 		fn := context.AfterFunc(ctx, func() {
 			t.Log("after func")
 		})
-		fn()
+		assert.True(t, fn())
 		cancel()
 	}
 	time.Sleep(time.Second)
