@@ -20,7 +20,7 @@ func TestOnce(t *testing.T) {
 	}
 	wg.Wait()
 
-	v := sync.OnceValue[int](func() int {
+	v := sync.OnceValue(func() int {
 		t.Logf("once value")
 		return 1
 	})
