@@ -97,33 +97,55 @@ func QuickSort(arr []int) {
 		空间复杂度: O(log(n))~O(n)
 	*/
 
-	var sort func(int, int)
+	var sort func(arr []int)
 
-	sort = func(left, right int) {
-		if left >= right {
+	sort = func(arr []int) {
+		if len(arr) <= 1 {
 			return
 		}
 		// 基准
-		var pivot = arr[left]
+		last := len(arr) - 1
+		var pivot = arr[last]
 
 		// 通过双指针 确定分区分界点
-		var idx = left
-		for i := left + 1; i <= right; i++ {
-			if arr[i] < pivot {
+		var idx = 1
+		for i, v := range arr[:last] {
+			if v < pivot {
+				arr[i], arr[idx-1] = arr[idx-1], v
 				idx++
-				arr[i], arr[idx] = arr[idx], arr[i]
 			}
 		}
-
+		idx--
 		// 将基准点放置到合适的位置上
-		arr[left], arr[idx] = arr[idx], arr[left]
+		arr[last], arr[idx] = arr[idx], arr[last]
 
 		// 针对左半部分和右半部分进行排序
-		sort(left, idx-1)
-		sort(idx+1, right)
+		sort(arr[:idx])
+		sort(arr[idx+1:])
 	}
 
-	sort(0, len(arr)-1)
+	var sort2 func(int, int)
+	sort2 = func(left, right int) {
+		if left >= right {
+			return
+		}
+		var pivot = arr[left]
+		begin, end := left+1, right+1
+		for begin < end {
+			if arr[begin] > pivot {
+				end--
+				arr[begin], arr[end] = arr[end], arr[begin]
+			} else {
+				begin++
+			}
+		}
+		arr[left], arr[begin-1] = arr[begin-1], arr[left]
+		sort2(left, begin-2)
+		sort2(begin, right)
+	}
+
+	sort(arr)
+	// sort2(0, len(arr)-1)
 }
 
 func ShellSort(arr []int) {

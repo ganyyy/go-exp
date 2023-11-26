@@ -9,15 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+var r = rand.New(rand.NewSource(time.Now().Unix()))
 
 type SortFunc func([]int)
 
 func shuffle(arr []int) []int {
 	var old = make([]int, len(arr))
-	rand.Shuffle(len(arr), func(i, j int) {
+	r.Shuffle(len(arr), func(i, j int) {
 		arr[i], arr[j] = arr[j], arr[i]
 	})
 	copy(old, arr)
@@ -40,30 +38,51 @@ func checkSort(t *testing.T, fn SortFunc) {
 	assert.Equal(t, old, arr, "src:%v", backup)
 }
 
-func TestBubbleSort(t *testing.T) {
-	checkSort(t, BubbleSort)
+func Test_SortFunc(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   SortFunc
+	}{
+		{"BubbleSort", BubbleSort},
+		{"SelectSort", SelectSort},
+		{"InsertSort", InsertSort},
+		{"QuickSort", QuickSort},
+		{"ShellSort", ShellSort},
+		{"MergeSort", MergeSort},
+		{"HeapSort", HeapSort},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			checkSort(t, tt.fn)
+		})
+	}
 }
 
-func TestSelectSort(t *testing.T) {
-	checkSort(t, SelectSort)
-}
+func BenchmarkSortFunc(b *testing.B) {
+	tests := []struct {
+		name string
+		fn   SortFunc
+	}{
+		{"BubbleSort", BubbleSort},
+		{"SelectSort", SelectSort},
+		{"InsertSort", InsertSort},
+		{"QuickSort", QuickSort},
+		{"ShellSort", ShellSort},
+		{"MergeSort", MergeSort},
+		{"HeapSort", HeapSort},
+	}
 
-func TestInsertSort(t *testing.T) {
-	checkSort(t, InsertSort)
-}
-
-func TestQuickSort(t *testing.T) {
-	checkSort(t, QuickSort)
-}
-
-func TestShellSort(t *testing.T) {
-	checkSort(t, ShellSort)
-}
-
-func TestMergeSort(t *testing.T) {
-	checkSort(t, MergeSort)
-}
-
-func TestHeapSort(t *testing.T) {
-	checkSort(t, HeapSort)
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			var arr = make([]int, NUM)
+			for i := range arr {
+				arr[i] = i
+			}
+			var old = shuffle(arr)
+			for i := 0; i < b.N; i++ {
+				copy(arr, old)
+				tt.fn(arr)
+			}
+		})
+	}
 }
