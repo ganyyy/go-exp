@@ -49,7 +49,7 @@ func (e *echoServer) OnShutdown(svr gnet.Server) {
 }
 
 func main() {
-	const addr = "udp://127.0.0.1:9999"
+	const addr = "tcp://127.0.0.1:9999"
 	go func() {
 		err := gnet.Serve(&echoServer{}, addr,
 			gnet.WithLockOSThread(true),

@@ -17,6 +17,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"ganyyy.com/go-exp/rpc/grpc/logger"
 	"ganyyy.com/go-exp/rpc/grpc/proto"
 )
 
@@ -38,7 +39,7 @@ func main() {
 	var end, cancel = context.WithTimeout(context.TODO(), time.Second*3)
 	defer cancel()
 	var conn, err = grpc.DialContext(end,
-		fmt.Sprintf(":%v", *port),
+		fmt.Sprintf("127.0.0.1:%v", *port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()), //
 		grpc.WithKeepaliveParams(keepParam),
 		grpc.WithConnectParams(grpc.ConnectParams{
@@ -53,7 +54,7 @@ func main() {
 		// 连接创建时可以带上,  但是如果错误不为空, 只要保证地址是正确的, 也可以继续用
 		// 阻塞式的情况下, 如果连接创建失败, 会返回一个空指针!
 		// grpc.WithReturnConnectionError(), // 返回链接本身的错误, 而非context的错误, 阻塞式的等待连接成功
-		// grpc.WithStatsHandler(logger.NewHandle("Client")),
+		grpc.WithStatsHandler(logger.NewHandle("Client")),
 	)
 	if err != nil {
 		log.Printf("dial error:%v", err)

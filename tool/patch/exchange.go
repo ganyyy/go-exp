@@ -1,7 +1,6 @@
 package patch
 
 import (
-	"reflect"
 	"syscall"
 	"unsafe"
 )
@@ -22,7 +21,7 @@ func backFromLocation(location uintptr) []byte {
 }
 
 func pageStart(ptr uintptr) uintptr {
-	return ptr & ^(uintptr(syscall.Getpagesize() - 1))
+	return ptr &^ (uintptr(syscall.Getpagesize() - 1))
 }
 
 func mprotectCrossPage(addr uintptr, length int, prot int) {
@@ -37,12 +36,7 @@ func mprotectCrossPage(addr uintptr, length int, prot int) {
 }
 
 func rawMemoryAccess(p uintptr, length int) []byte {
-	var dest []byte
-	var header = (*reflect.SliceHeader)(unsafe.Pointer(&dest))
-	header.Data = p
-	header.Len = length
-	header.Cap = length
-	return dest
+	return unsafe.Slice((*byte)(unsafe.Pointer(p)), length)
 }
 
 var (

@@ -29,7 +29,7 @@ func (h *HandleRsp) Handle() {}
 
 type Handle interface{ Handle() }
 
-func HandleData(data proto.RepeatData) {
+func HandleData(data *proto.RepeatData) {
 
 	for _, msg := range data.GetData() {
 		var handle Handle

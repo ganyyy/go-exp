@@ -4,29 +4,35 @@ import (
 	"context"
 	"io"
 	"log"
-	"os"
+	"log/slog"
 
+	"ganyyy.com/go-exp/helper"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/stats"
 )
 
 type logger struct {
-	*log.Logger
+	*slog.Logger
+	level slog.Level
 }
 
-func newLogger() io.Writer {
+func newLogger(level slog.Level) io.Writer {
 	return &logger{
-		Logger: log.New(os.Stdout, "[GRPC]", 0),
+		level:  level,
+		Logger: helper.InitSlog(),
 	}
 }
 
 func (l *logger) Write(data []byte) (int, error) {
-	l.Printf("%s", data)
+	l.Log(context.Background(), l.level, string(data))
 	return len(data), nil
 }
 
 func SetGRPCLogger() {
-	grpclog.SetLoggerV2(grpclog.NewLoggerV2(newLogger(), newLogger(), newLogger()))
+	grpclog.SetLoggerV2(grpclog.NewLoggerV2(
+		newLogger(slog.LevelInfo),
+		newLogger(slog.LevelWarn),
+		newLogger(slog.LevelError)))
 }
 
 type handle struct {
@@ -42,7 +48,7 @@ func (h *handle) TagRPC(ctx context.Context, info *stats.RPCTagInfo) context.Con
 	return ctx
 }
 func (h *handle) HandleRPC(ctx context.Context, info stats.RPCStats) {
-	log.Printf("[%v] HandleRPC info:%+v", h.tag, info)
+	log.Printf("[%v] HandleRPC info [%T]:%+v", h.tag, info, info)
 }
 func (h *handle) TagConn(ctx context.Context, info *stats.ConnTagInfo) context.Context {
 	log.Printf("[%v] TagConn info:%+v", h.tag, info)
