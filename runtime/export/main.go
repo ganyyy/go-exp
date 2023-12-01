@@ -21,14 +21,14 @@ func TestExchangeGC() *Outer {
 	return outer
 }
 
-//go:linkname Add go-exp/export/package_b.Add
+//go:linkname Add ganyyy.com/go-exp/runtime/export/package_b.Add
 func Add(a, b int) int
 
 type mainStu struct {
 	name string
 }
 
-//go:linkname setName go-exp/export/package_b.(*stu).setName
+//go:linkname setName ganyyy.com/go-exp/runtime/export/package_b.(*stu).setName
 func setName(stu *mainStu, newName string)
 
 func main() {

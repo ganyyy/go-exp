@@ -1,6 +1,9 @@
 package fuzzing
 
-import "testing"
+import (
+	"testing"
+	"unicode/utf8"
+)
 
 func FuzzStrCompare(f *testing.F) {
 	var testCases = [][]string{
@@ -24,4 +27,9 @@ func FuzzStrCompare(f *testing.F) {
 			t.Errorf("p1:%v, p2:%v, compare not valid!", p1, p2)
 		}
 	})
+}
+
+func TestStringLength(t *testing.T) {
+	var a = "😀汉字😄\u1234"
+	t.Logf("len:%v, rune len:%v, %v, %v", len(a), len([]rune(a)), utf8.RuneCount([]byte(a)), utf8.RuneCountInString(a))
 }

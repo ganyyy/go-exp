@@ -9,6 +9,7 @@ import (
 
 	"go.etcd.io/etcd/api/v3/etcdserverpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
 type EtcdConfig struct {
@@ -161,4 +162,30 @@ func SetNX(key, val string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func DistributedLock(ctx context.Context, key string) (context.CancelFunc, error) {
+	session, err := concurrency.NewSession(defaultClient.Client)
+	if err != nil {
+		return nil, err
+	}
+	mutex := concurrency.NewMutex(session, defaultClient.Root+key)
+	if err := mutex.Lock(ctx); err != nil {
+		session.Close()
+		return nil, err
+	}
+	return func() {
+		mutex.Unlock(context.Background())
+		session.Close()
+	}, nil
+}
+
+func DistributedLockWithSession(ctx context.Context, session *concurrency.Session, key string) (context.CancelFunc, error) {
+	mutex := concurrency.NewMutex(session, defaultClient.Root+key)
+	if err := mutex.Lock(ctx); err != nil {
+		return nil, err
+	}
+	return func() {
+		mutex.Unlock(context.Background())
+	}, nil
 }
