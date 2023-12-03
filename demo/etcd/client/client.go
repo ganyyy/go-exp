@@ -69,6 +69,7 @@ func Get(key string, prefix bool) ([]KV, error) {
 	var opt []clientv3.OpOption
 	if prefix {
 		opt = append(opt, clientv3.WithPrefix())
+		opt = append(opt, clientv3.WithSerializable())
 	}
 	resp, err := defaultClient.Get(context.Background(), key, opt...)
 	if err != nil {
