@@ -42,6 +42,30 @@ func main() {
 		time.Sleep(time.Second)
 		data.SetA(idx)
 		idx++
-		fmt.Printf("main src:  %v, %+v\n", Min(src), data)
+		fmt.Printf("main src:  %v, %+v, %v, %v\n",
+			Min(src), data, Sum3(GenAdd(idx), src), Sum3(GenAdd2(), src))
+	}
+}
+
+//go:noinline
+func Sum3(opt func(int) int, src []int) int {
+	var ret int
+	for _, v := range src {
+		ret += opt(v)
+	}
+	return ret
+}
+
+//go:noinline
+func GenAdd(a int) func(int) int {
+	return func(b int) int {
+		return a + b
+	}
+}
+
+//go:noinline
+func GenAdd2() func(int) int {
+	return func(b int) int {
+		return b
 	}
 }
