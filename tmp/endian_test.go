@@ -20,14 +20,13 @@ func TestNumberConvert(t *testing.T) {
 }
 
 func TestCloseChannel(t *testing.T) {
-	var taskChan = make(chan int, 3)
+	var taskChan = make(chan int)
+	var send chan<- int = taskChan
+	var recv <-chan int = taskChan
+	go func(send chan<- int) { close(taskChan) }(send)
+	<-recv
 
-	close(taskChan)
-
-	select {
-	case taskChan <- 1:
-	default:
-	}
+	taskChan <- 1
 }
 
 func TestSearchInts(t *testing.T) {

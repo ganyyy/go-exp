@@ -9,8 +9,8 @@ package generic2
 	即使无法直接使用相关的操作, 也可以约束输入的参数, 并通过断言的形式处理逻辑
 */
 
-//ByteSeq string和[]byte的共同点是:
-//允许索引, 拥有len, ...?
+// ByteSeq string和[]byte的共同点是:
+// 允许索引, 拥有len, ...?
 type ByteSeq interface {
 	~string | ~[]byte
 }
@@ -41,8 +41,8 @@ func Join[T ByteSeq](src []T, seq T) (ret T) {
 	return T(b)
 }
 
-//StructField 在这个复合类型中, 都拥有的属性是 x
-//但是其类型不一致, 只能使用断言的方式来进行操作
+// StructField 在这个复合类型中, 都拥有的属性是 x
+// 但是其类型不一致, 只能使用断言的方式来进行操作
 type StructField interface {
 	struct {
 		a int
@@ -56,7 +56,7 @@ type StructField interface {
 	}
 }
 
-//IncrementX 这种方式只能用断言了..
+// IncrementX 这种方式只能用断言了..
 func IncrementX[T StructField](p *T) {
 	switch v := interface{}(p).(type) {
 	case *struct {
@@ -83,7 +83,7 @@ type IntSliceOrMap interface {
 	[]int | map[int]int // 这里不能使用底层类型, 否则无法断言...
 }
 
-//Entry 这个例子也不行. 原则上输出/输出都是一致的, 为啥编译不过呢?
+// Entry 这个例子也不行. 原则上输出/输出都是一致的, 为啥编译不过呢?
 func Entry[T IntSliceOrMap](c T, i int) int {
 	switch t := interface{}(c).(type) {
 	case []int: // 期望后期会推出  ~[]int 这种形式的断言方法
@@ -103,7 +103,7 @@ type SliceType[T any] interface {
 	~[]T
 }
 
-//MapSlice 这个的有点是可以保持原有的类型!
+// MapSlice 这个的有点是可以保持原有的类型!
 func MapSlice[S SliceType[E], E any](s S, f func(E) E) S {
 	var r = make([]E, len([]E(s)))
 	for i, v := range s {

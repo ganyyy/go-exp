@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	showGCBitMap()
+	Pointer()
 }
 
 func writeBarrier() {

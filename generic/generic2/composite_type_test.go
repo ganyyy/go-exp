@@ -1,9 +1,10 @@
 package generic2
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestJoin(t *testing.T) {
@@ -16,7 +17,8 @@ func TestJoin(t *testing.T) {
 }
 
 func TestEntry(t *testing.T) {
-	var a = []int{1, 2, 3, 4}
+	type E = []int
+	var a E = []int{1, 2, 3, 4}
 	var b = map[int]int{
 		1: 1,
 		2: 2,

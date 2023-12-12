@@ -36,13 +36,13 @@ type M2 interface {
 	MM2()
 }
 
-//MMSet 要求必须要同时实现 MM1和MM2两个方法
+// MMSet 要求必须要同时实现 MM1和MM2两个方法
 type MMSet interface {
 	M1
 	M2
 }
 
-//MMSetWithMethod 还要求实现Show方法
+// MMSetWithMethod 还要求实现Show方法
 type MMSetWithMethod interface {
 	MMSet
 	Show()
@@ -58,7 +58,7 @@ var (
 
 // 以上都是原有的interface
 
-//MMSetMethodWithType 再增加了底层类型约束, 此时就不能当成传统的接口使用了
+// MMSetMethodWithType 再增加了底层类型约束, 此时就不能当成传统的接口使用了
 type MMSetMethodWithType interface {
 	~int // 底层类型约束只能是 原始类型(包括map[K]V, []T, chan等内置类型). 不允许使用自定义的类型作为底层类型约束
 	MMSetWithMethod
@@ -69,8 +69,8 @@ type MMUnionSet interface {
 	MMSetWithMethod
 }
 
-//Index 可比较的类型约束, 仅用于 ==和!=
-func Index[T comparable](s []T, v T) int {
+// Index 可比较的类型约束, 仅用于 ==和!=
+func Index[T comparable, E ~[]T](s E, v T) int {
 	if len(s) == 0 {
 		return -1
 	}

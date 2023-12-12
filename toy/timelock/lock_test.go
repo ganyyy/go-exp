@@ -125,3 +125,27 @@ func BenchmarkTimeLock(b *testing.B) {
 		})
 	})
 }
+
+func TestRWDeadLock(t *testing.T) {
+	var lock sync.RWMutex
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		time.Sleep(time.Second)
+		lock.Lock()
+		defer lock.Unlock()
+	}()
+
+	go func() {
+		defer wg.Done()
+		lock.RLock()
+		time.Sleep(time.Second * 2)
+		lock.RLock()
+		lock.RUnlock()
+		lock.RUnlock()
+	}()
+
+	wg.Wait()
+}
