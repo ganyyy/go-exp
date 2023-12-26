@@ -27,17 +27,17 @@ func main() {
 		Level:     slog.LevelDebug,
 	})))
 
-	forNatsCallback()
+	// forNatsCallback()
 
-	// nc, e := nats.Connect(urls)
-	// _ = nc
-	// if e != nil {
-	// 	slog.Error("connect nats error", slog.String("err", e.Error()))
-	// 	return
-	// }
-	// defer nc.Close()
+	nc, e := nats.Connect(urls)
+	_ = nc
+	if e != nil {
+		slog.Error("connect nats error", slog.String("err", e.Error()))
+		return
+	}
+	defer nc.Close()
 
-	// forMaxPayload(nc)
+	forMaxPayload(nc)
 	// forMultiSubscribe(nc)
 }
 
@@ -96,7 +96,7 @@ func forMaxPayload(nc *nats.Conn) {
 	})
 
 	var sendBuf = make([]byte, 6291456+1024)
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1; i++ {
 		go func(i int) {
 			time.Sleep(time.Millisecond * time.Duration(rand.Intn(30)) * 100)
 			nc, e := nats.Connect(urls)

@@ -22,15 +22,26 @@ require (
 	golang.org/x/sys v0.15.0
 	golang.org/x/tools v0.9.1
 	google.golang.org/grpc v1.59.0
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.32.0
 	gorm.io/gorm v1.25.1
 	layeh.com/gopher-luar v1.0.10
 )
 
 require (
+	github.com/PuerkitoBio/goquery v1.8.1 // indirect
+	github.com/andybalholm/cascadia v1.3.2 // indirect
+	github.com/antchfx/htmlquery v1.3.0 // indirect
+	github.com/antchfx/xmlquery v1.3.18 // indirect
+	github.com/antchfx/xpath v1.2.5 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
+	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/pingcap/errors v0.11.5-0.20210425183316-da1aaba5fb63 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
+	github.com/temoto/robotstxt v1.1.2 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect
 )
@@ -99,6 +110,7 @@ require (
 	github.com/getsentry/sentry-go v0.21.0
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-kiss/monkey v0.0.0-20230110091714-dd9fefb2c016
+	github.com/gocolly/colly v1.2.0
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
