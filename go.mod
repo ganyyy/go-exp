@@ -1,6 +1,6 @@
 module ganyyy.com/go-exp
 
-go 1.21
+go 1.22
 
 require (
 	ganyyy.com/go-exp/patch v0.0.0
