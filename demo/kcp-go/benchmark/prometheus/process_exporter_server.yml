@@ -1,0 +1,10 @@
+# repo: https://github.com/ncabatoff/process-exporter
+# dashboard: https://grafana.net/dashboards/249
+# run command: process-exporter -config.path ./process_exporter_server.yml
+#   默认的端口是9256, 可以通过 -web.listen-address=:9256 来修改
+process_names:
+  - name: kcp-server
+    exe:
+    - ./benchmark # 这个必须要和执行文件时命令行参数一致. 相当于是/proc/<pid>/cmdline
+    cmdline:
+    - --config\s+./server_config.toml # 一行完整的字符串, 所以需要转义或者正则表达式

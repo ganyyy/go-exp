@@ -1,0 +1,6 @@
+IsServer     = true   # 是否是服务端
+PProfPort    = 8888    # pprof 端口
+ServerAddr   = "127.0.0.1:8899"  # 服务端地址
+
+Intervals    = 10       # 间隔时间
+WriteDelay   = false  # 是否延迟写
