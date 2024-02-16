@@ -1,4 +1,4 @@
-FROM golang:1.20.4
+FROM golang:1.21.6
 
 # 这个需要在实际构建的时候指定
 ARG REPO_DIR="/invalid/path"
