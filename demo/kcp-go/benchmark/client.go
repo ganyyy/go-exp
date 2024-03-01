@@ -8,6 +8,9 @@ import (
 
 func StartClient() {
 	slog.Info("StartClient")
-	OpenMetrics()
-	RunClients(kcp_benchmark_config.Config.ClientNum, DailKCP)
+	OpenClientMetrics()
+
+	clientNum := kcp_benchmark_config.Config.ClientNum
+
+	RunClients(clientNum, kcp_benchmark_config.Config.ServerAddr, option.Dial)
 }

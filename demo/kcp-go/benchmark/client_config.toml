@@ -1,7 +1,11 @@
-ServerAddr   = "127.0.0.1:8899" # 服务端地址
+ #ServerAddr   = ["127.0.0.1:8899","127.0.0.1:8900","127.0.0.1:8901","127.0.0.1:8902"] # 服务端地址
+ ServerAddr   = "127.0.0.1:8899"  # 服务端地址
+IsKCP        = true
 
-EchoInterval = 50   # 1s/EchoInterval = 发送的包的数量
+EchoInterval = 40   # 1s/EchoInterval = 发送的包的数量
 ClientNum    = 1000
+
+
 
 Intervals    = 10   # 间隔时间
 WriteDelay   = false  # 是否延迟写
