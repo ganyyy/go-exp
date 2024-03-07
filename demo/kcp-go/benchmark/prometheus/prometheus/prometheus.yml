@@ -19,7 +19,7 @@ scrape_configs:
   static_configs:
   - targets:
     - localhost:9090
-- job_name: go-exp
+- job_name: kcp-client
   honor_timestamps: true
   scrape_interval: 15s
   scrape_timeout: 10s
@@ -27,7 +27,14 @@ scrape_configs:
   scheme: http
   static_configs:
   - targets:
-    - go-exp:2999
+    - kcp_client:2999
+    - kcp_client2:2999
+    - kcp_client3:2999
+    - kcp_client4:2999
+    - kcp_client:9256
+    - kcp_client2:9256
+    - kcp_client3:9256
+    - kcp_client4:9256
 - job_name: kcp-server
   honor_timestamps: true
   scrape_interval: 15s
@@ -36,4 +43,5 @@ scrape_configs:
   scheme: http
   static_configs:
   - targets:
-    - go-exp:9256
+    - kcp_server:2999
+    - kcp_server:9256

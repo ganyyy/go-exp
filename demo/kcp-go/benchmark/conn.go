@@ -8,6 +8,7 @@ import (
 	"net"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	kcp_benchmark_config "ganyyy.com/go-exp/demo/kcp-go/benchmark/config"
@@ -15,7 +16,7 @@ import (
 )
 
 // EchoDataSize 8字节的纳秒级时间戳
-const EchoDataSize = 8
+const EchoDataSize = 512
 
 var (
 	ErrMsgSize = errors.New("invalid msg size")
@@ -58,25 +59,29 @@ func (conn *Conn) Write(t int64) error {
 	var buf [EchoDataSize]byte
 	kcp_benchmark_config.Order.PutUint64(buf[:], uint64(t))
 	n, err := conn.Conn.Write(buf[:])
+	if err != nil {
+		return err
+	}
 	if n != EchoDataSize {
 		return fmt.Errorf("invalid write size: %d", n)
 	}
-	return err
+	return nil
 }
 
 func (conn *Conn) Read() (int64, error) {
 	var buf [EchoDataSize]byte
 	n, err := io.ReadFull(conn.Conn, buf[:])
-	if n != EchoDataSize {
-		return 0, ErrMsgSize
-	}
 	if err != nil {
 		return 0, err
+	}
+	if n != EchoDataSize {
+		return 0, ErrMsgSize
 	}
 	return int64(kcp_benchmark_config.Order.Uint64(buf[:])), err
 }
 
 func (conn *Conn) StartWrite() {
+	defer conn.Close()
 	for {
 		select {
 		case <-conn.ticker:
@@ -124,29 +129,77 @@ func (conn *Conn) Close() {
 type AcceptCallback func(conn net.Conn) error
 
 type Listener struct {
+	Idx int
 	net.Listener
 	*slog.Logger
 	AcceptCallback
 }
 
-func NewListener(listener net.Listener, afterAccept AcceptCallback) *Listener {
+func NewListener(idx int, listener net.Listener, afterAccept AcceptCallback) *Listener {
 	return &Listener{
+		Idx:      idx,
 		Listener: listener,
 		Logger: slog.Default().With(
 			slog.String("type", "listener"),
 			slog.String("local", listener.Addr().String()),
+			slog.Int("idx", idx),
 		),
 		AcceptCallback: afterAccept,
 	}
 }
 
+func (lis *Listener) GetSocketBuffer(typ int) int {
+	if kcpListener, ok := lis.Listener.(*KcpListener); ok {
+		size, err := syscall.GetsockoptInt(int(kcpListener.listenFD), syscall.SOL_SOCKET, typ)
+		if err != nil {
+			return 0
+		}
+		return size
+	}
+	return 0
+}
+
 func (lis *Listener) Start() {
 	lis.Info("start")
+	var temporaryDelay time.Duration
+	if kcpListener, ok := lis.Listener.(*KcpListener); ok {
+		lis.Info("init kcp listener buffer",
+			slog.Int("read", lis.GetSocketBuffer(syscall.SO_RCVBUF)),
+			slog.Int("write", lis.GetSocketBuffer(syscall.SO_SNDBUF)),
+		)
+		lis.Info("set kcp read write buffer")
+		err := kcpListener.SetReadBuffer(64 * 1024 * 1024)
+		if err != nil {
+			lis.Error("set read buffer", slog.String("err", err.Error()))
+		}
+		err = kcpListener.SetWriteBuffer(64 * 1024 * 1024)
+		if err != nil {
+			lis.Error("set write buffer", slog.String("err", err.Error()))
+		}
+		lis.Info("afterset kcp listener buffer",
+			slog.Int("read", lis.GetSocketBuffer(syscall.SO_RCVBUF)),
+			slog.Int("write", lis.GetSocketBuffer(syscall.SO_SNDBUF)),
+		)
+	}
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
-			lis.Error("accept", slog.String("err", err.Error()))
-			return
+			if ne, ok := err.(net.Error); ok && ne.Temporary() {
+				if temporaryDelay == 0 {
+					temporaryDelay = 5 * time.Millisecond
+				} else {
+					temporaryDelay *= 2
+				}
+				if temporaryDelay > time.Second {
+					temporaryDelay = time.Second
+				}
+				lis.Warn("accept", slog.String("err", err.Error()), slog.String("delay", temporaryDelay.String()))
+				time.Sleep(temporaryDelay)
+				continue
+			} else {
+				lis.Error("accept", slog.String("err", err.Error()))
+				return
+			}
 		}
 		// lis.Info("accept", slog.String("remote", conn.RemoteAddr().String()))
 		go lis.HandleConn(conn)
@@ -163,6 +216,14 @@ func (lis *Listener) HandleConn(conn net.Conn) {
 	}
 	c := NewConn(conn)
 	defer c.Close()
+
+	option.ServerMetrics.AddConn(lis.Idx)
+	defer option.ServerMetrics.DelConn(lis.Idx)
+
+	// TODO 代码写的真的烂, 迟早得重构
+
+	kcpConn, _ := conn.(*kcp.UDPSession)
+
 	for {
 		t, err := c.Read()
 		if err != nil {
@@ -173,6 +234,9 @@ func (lis *Listener) HandleConn(conn net.Conn) {
 		if err != nil {
 			c.Logger.Error("write", slog.String("err", err.Error()))
 			return
+		}
+		if kcpConn != nil {
+			rtoHistogrm.Update(int64(kcpConn.GetRTO()))
 		}
 	}
 }
@@ -186,17 +250,19 @@ func AcceptKcpSession(conn net.Conn) error {
 	return nil
 }
 
-func RunClients(num int, dial func(string) (net.Conn, error)) {
-	slog.Info("RunClients", slog.Int("num", num))
+func RunClients(num int, addr string, dial func(string) (net.Conn, error)) {
+	slog.Info("RunClients", slog.Int("num", num), slog.String("addr", addr))
 	var allConns = make([]func() bool, 0, num)
 	// dial
 	for idx := 0; idx < num; idx++ {
-		netConn, err := dial(kcp_benchmark_config.Config.ServerAddr)
+		netConn, err := dial(addr)
 		if err != nil {
 			slog.Error("dial error", slog.Int("idx", idx), slog.String("err", err.Error()))
 			continue
 		}
 		if kcpConn, ok := netConn.(*kcp.UDPSession); ok {
+			kcpConn.SetReadBuffer(4 * 1024 * 1024)
+			kcpConn.SetWriteBuffer(1024 * 1024)
 			kcp_benchmark_config.InitKcpSession(kcpConn)
 		}
 		conn := NewConn(netConn)
@@ -216,19 +282,44 @@ func RunClients(num int, dial func(string) (net.Conn, error)) {
 			if allConns[idx] != nil && allConns[idx]() {
 				idx++
 			} else {
-				allConns[idx] = allConns[ln-1]
-				allConns[ln-1] = nil
-				allConns = allConns[:ln-1]
 				ln--
+				allConns[idx], allConns[ln] = allConns[ln], nil
+				allConns = allConns[:ln]
 			}
 		}
 	}
 }
 
-func DailKCP(addr string) (net.Conn, error) {
-	return kcp.Dial(addr)
-}
-
 func DailTCP(addr string) (net.Conn, error) {
 	return net.Dial("tcp", addr)
+}
+
+type BenchmarkOption struct {
+	ServerMetrics  IServerMetrics
+	AcceptCallback AcceptCallback
+	Listen         func(string) (net.Listener, error)
+	Dial           func(string) (net.Conn, error)
+}
+
+var option BenchmarkOption
+
+type KcpListener struct {
+	*kcp.Listener
+	PacketConn net.PacketConn
+	once       sync.Once
+	listenFD   uintptr
+}
+
+// Close
+func (lis *KcpListener) Close() error {
+	var err error
+	var closed bool
+	lis.once.Do(func() {
+		closed = true
+		err = errors.Join(lis.PacketConn.Close(), lis.Listener.Close())
+	})
+	if closed {
+		return err
+	}
+	return io.ErrClosedPipe
 }

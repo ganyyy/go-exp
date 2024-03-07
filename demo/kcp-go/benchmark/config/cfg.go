@@ -14,14 +14,17 @@ import (
 )
 
 var Config struct {
-	IsServer     bool   // 是否是服务端
-	ClientNum    int    // 如果是客户端的话, 客户端数量
-	EchoInterval int    // 如果是客户端的话, echo间隔(毫秒)
-	ServerAddr   string // 服务端地址
-	Intervals    int    // 间隔时间
-	WriteDelay   bool   // 是否延迟写
-	AckNoDelay   bool   // 是否延迟ACK
-	PProfPort    int    // pprof 端口
+	ServerAddr string // 服务端地址
+	ListenNum  int    // 如果是服务端的话, 并行监听的数量
+
+	ClientNum    int // 如果是客户端的话, 客户端数量
+	EchoInterval int // 如果是客户端的话, echo间隔(毫秒)
+	Intervals    int // 间隔时间
+	PProfPort    int // pprof 端口
+
+	IsKCP      bool // 是否是kcp
+	IsServer   bool // 是否是服务端
+	WriteDelay bool // 是否延迟写
 }
 
 var Order = binary.BigEndian
