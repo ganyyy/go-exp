@@ -85,7 +85,7 @@ func (s *Server) HelloStream(stream proto.Greete_HelloStreamServer) error {
 				cancel()
 				break
 			}
-			log.Printf("%v recv %v", id, msg)
+			// log.Printf("%v recv %v", id, msg)
 			select {
 			case msgChan <- msg:
 			default:

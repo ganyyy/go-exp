@@ -44,10 +44,12 @@ func NewHandle(reason string) stats.Handler {
 }
 
 func (h *handle) TagRPC(ctx context.Context, info *stats.RPCTagInfo) context.Context {
+	return ctx
 	log.Printf("[%v] TagRPC info:%+v", h.tag, info)
 	return ctx
 }
 func (h *handle) HandleRPC(ctx context.Context, info stats.RPCStats) {
+	return
 	log.Printf("[%v] HandleRPC info [%T]:%+v", h.tag, info, info)
 }
 func (h *handle) TagConn(ctx context.Context, info *stats.ConnTagInfo) context.Context {

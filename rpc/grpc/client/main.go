@@ -124,7 +124,8 @@ func main() {
 					}
 					return
 				}
-				log.Printf("[Stream:%v] resp:%v", id, resp)
+				_ = resp
+				// log.Printf("[Stream:%v] resp:%v", id, resp)
 			}
 		}()
 		var ticker = time.NewTicker(time.Second)
@@ -138,7 +139,7 @@ func main() {
 					log.Printf("[Stream:%v] send error %v, code:%v", id, sendErr, status.Code(sendErr))
 					return
 				} else {
-					log.Printf("[Stream:%v] send:%v", id, send)
+					// log.Printf("[Stream:%v] send:%v", id, send)
 				}
 			case <-ctx.Done():
 				// 客户端必须要执行CloseSend用来关闭流
@@ -188,10 +189,10 @@ func main() {
 				isClose = true
 				streamCancel()
 			case "reconn":
-				if !isClose {
-					continue
-				}
-				isClose = false
+				// if !isClose {
+				// 	continue
+				// }
+				// isClose = false
 				streamContext, streamCancel = context.WithCancel(context.Background())
 				go retryConn(streamContext)
 			case "quit":
