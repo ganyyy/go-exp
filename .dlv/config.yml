@@ -1,0 +1,3 @@
+substitute-path:
+  - {from: "", to: "/home/gan/sdk/goroot/src"}
+  - {from: "ganyyy.com/go-exp", to: "/home/gan/code/go/my_code/go-exp/"}

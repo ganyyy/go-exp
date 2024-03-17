@@ -13,6 +13,7 @@ import (
 	kcp_benchmark_config "ganyyy.com/go-exp/demo/kcp-go/benchmark/config"
 	"github.com/rcrowley/go-metrics"
 	"github.com/xtaci/kcp-go/v5"
+	"golang.org/x/sys/unix"
 )
 
 var configPath = flag.String("config", "config.toml", "config file path")
@@ -50,7 +51,7 @@ func main() {
 						slog.Int64("fd", int64(fd)),
 					)
 					listenFD = fd
-					syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEPORT, 1)
+					syscall.SetsockoptInt(int(fd), unix.SOL_SOCKET, unix.SO_REUSEPORT, 1)
 				})
 			}
 			conn, err := cfg.ListenPacket(context.Background(), "udp", addr)
