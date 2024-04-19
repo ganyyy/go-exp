@@ -1,6 +1,6 @@
 module ganyyy.com/go-exp
 
-go 1.22
+go 1.22.1
 
 require (
 	ganyyy.com/go-exp/patch v0.0.0
@@ -12,7 +12,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/labstack/gommon v0.4.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/ugorji/go/codec v1.2.11
 	github.com/urfave/cli v1.22.14
 	github.com/yuin/gopher-lua v1.1.0
@@ -71,7 +71,6 @@ require (
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
-	github.com/nats-io/nats-server/v2 v2.9.15 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect

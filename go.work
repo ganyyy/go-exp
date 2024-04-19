@@ -8,6 +8,7 @@ use (
 	./tool/json2go
 	./tool/goenum
 	./tool/protoc-gen-go-handle
+	./demo/nats/jetstream
 //./remote/nats.go
 //./work/bar
 //./work/foo
