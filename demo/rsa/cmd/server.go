@@ -13,15 +13,21 @@ var echoHandle http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 }
 
 func Server() {
-	pool := LoadCA()
 	log.SetPrefix("[Server]")
 
 	var s = http.Server{
 		Addr:    ":8081",
 		Handler: echoHandle,
 		TLSConfig: &tls.Config{
-			ClientCAs:  pool,
-			ClientAuth: tls.RequireAndVerifyClientCert,
+			MinVersion:         tls.VersionTLS12,
+			InsecureSkipVerify: true,
+			Certificates: []tls.Certificate{func() tls.Certificate {
+				crt, err := tls.LoadX509KeyPair(ServerCrt, ServerKey)
+				if err != nil {
+					panic(err)
+				}
+				return crt
+			}()},
 		},
 	}
 

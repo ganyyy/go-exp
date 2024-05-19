@@ -2,31 +2,37 @@ package cmd
 
 import (
 	"crypto/tls"
-	"io/ioutil"
+	"crypto/x509"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 )
 
-func Client() {
-	pool := LoadCA()
+func Client(addr string) {
 
 	log.SetPrefix("[Client]")
-	cliCrt, err := tls.LoadX509KeyPair(ClientCrt, ClientKey)
+
+	caCert, err := os.ReadFile(ServerCrt)
 
 	if err != nil {
 		panic(err)
 	}
 
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			RootCAs:      pool,
-			Certificates: []tls.Certificate{cliCrt},
+			RootCAs:            caCertPool,
+			InsecureSkipVerify: true,
 		},
 	}
 
 	client := &http.Client{Transport: tr}
 
-	resp, err := client.Get("https://localhost:8081")
+	resp, err := client.Get(fmt.Sprintf("https://%s", addr))
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +42,7 @@ func Client() {
 		}
 	}()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}

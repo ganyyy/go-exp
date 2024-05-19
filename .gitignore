@@ -13,3 +13,4 @@
 */_obj/
 .idea/
 remote/
+demo/nats/jetstream/docker/
