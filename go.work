@@ -9,6 +9,7 @@ use (
 	./tool/goenum
 	./tool/protoc-gen-go-handle
 	./demo/nats/jetstream
+	./tool/protoc-gen-dirty-mark
 //./remote/nats.go
 //./work/bar
 //./work/foo
