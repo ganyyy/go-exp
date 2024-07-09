@@ -280,3 +280,19 @@ func TestMark(t *testing.T) {
 	t.Log(string(bs))
 
 }
+
+func TestBitSet(t *testing.T) {
+	var b = NewBitsetMark(100)
+	b.Dirty(0)
+	b.Dirty(1)
+	b.Dirty(2)
+	b.Dirty(3)
+	b.Dirty(50)
+	b.Dirty(99)
+	b.Dirty(100)
+	b.Dirty(101)
+
+	for i := range b.AllBits() {
+		t.Log(i)
+	}
+}

@@ -1,6 +1,11 @@
 package main
 
-import "strings"
+import (
+	"bytes"
+	"go/format"
+	"strings"
+	"text/template"
+)
 
 type parsePlugin struct {
 	Files     map[string]*File
@@ -16,6 +21,25 @@ type File struct {
 	MetaAlias string
 	Imports   map[string]string // path -> alias
 	Structs   map[string]*Struct
+}
+
+// Render renders the file.
+func (f *File) Render() ([]byte, error) {
+	var sb bytes.Buffer
+	tp, err := template.New(f.Name).Parse(FileTemplate)
+	if err != nil {
+		return nil, err
+	}
+	err = tp.Execute(&sb, f)
+	if err != nil {
+		return nil, err
+	}
+	ret, err := format.Source(sb.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+
 }
 
 type Field struct {
@@ -93,4 +117,13 @@ func (s *Struct) AddReferencesList(name, vt string) {
 		Name:  name,
 		Extra: "ReferenceList",
 	})
+}
+
+// AllFields returns all fields.
+func (s *Struct) AllFields() []Field {
+	var fields = make([]Field, 0, len(s.Values)+len(s.References)+len(s.Containers))
+	fields = append(fields, s.Values...)
+	fields = append(fields, s.References...)
+	fields = append(fields, s.Containers...)
+	return fields
 }

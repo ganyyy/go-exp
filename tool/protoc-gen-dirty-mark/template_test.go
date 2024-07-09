@@ -4,8 +4,8 @@ import (
 	"os"
 	"protoc-gen-dirty-mark/data"
 	"protoc-gen-dirty-mark/meta"
+	"protoc-gen-dirty-mark/pb"
 	"testing"
-	"text/template"
 
 	"github.com/stretchr/testify/require"
 )
@@ -44,19 +44,19 @@ func TestTemplate(t *testing.T) {
 	var f, err = os.OpenFile("data/data.go", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	require.NoError(t, err)
 
-	tp, err := template.New("data").Parse(FileTemplate)
-	require.NoError(t, err)
+	content, err := file.Render()
 
-	err = tp.Execute(f, &file)
 	require.NoError(t, err)
+	_, err = f.Write(content)
+	require.NoError(t, err)
+	require.NoError(t, f.Close())
 }
 
 func TestData(t *testing.T) {
 	var d = data.NewData()
 	d.SetName("test")
-	i := data.NewInner()
+	i := d.GetInner()
 	i.SetData("inner")
-	d.SetInner(i)
 
 	logDirty := func() {
 		dirty := d.DirtyProto()
@@ -72,6 +72,8 @@ func TestData(t *testing.T) {
 	strMap.Set("key2", "value2")
 	d.SetStrMap(strMap)
 	logDirty()
+
+	innerList := meta.NewReferenceList[*data.Inner, *pb.Inner]()
 
 	strMap.Del("key")
 	logDirty()

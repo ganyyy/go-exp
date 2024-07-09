@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "./pb";
+
+
+
+message Inner {
+    string data = 1;
+}
+
+message Data {
+    string name = 1;
+    Inner inner = 2;
+    map<string, string> str_map = 3;
+    map<string, Inner> inner_map = 4;
+    repeated string str_list = 5;
+    repeated Inner inner_list = 6;
+}

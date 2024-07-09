@@ -19,20 +19,20 @@ import (
 
 const (
 	_{{$name}}FieldIndex = iota - 1
-	{{- range $field := $struct.Values}}
-	{{$name}}Field{{$field.Name}}
-	{{- end}}
-	{{- range $field := $struct.References}}
-	{{$name}}Field{{$field.Name}}
-	{{- end}}
-	{{- range $field := $struct.Containers}}
-	{{$name}}Field{{$field.Name}}
+	{{- range $field := $struct.AllFields}}
+	{{$name}}FieldIndex{{$field.Name}}
 	{{- end}}
 	{{$name}}FieldMax
 )
 
+var _{{$name}}ApplyDirtyTable = []func(*{{$name}}, *{{$top.PBAlias}}.{{$name}}){
+	{{- range $field := $struct.AllFields}}
+	{{$name}}FieldIndex{{$field.Name}}: (*{{$name}}).applyDirty{{$field.Name}},
+	{{- end}}
+}
+
 type {{$name}} struct {
-	mark {{$top.MetaAlias}}.Mark[*{{$top.PBAlias}}.{{$name}}]
+	mark *{{$top.MetaAlias}}.BitsetMark
 	{{- range $field := $struct.Values}}
 	_{{$field.Name}} {{$field.Type}}
 	{{- end}}
@@ -46,6 +46,7 @@ type {{$name}} struct {
 
 func New{{$name}}() *{{$name}} {
 	var m {{$name}}
+	m.mark = {{$top.MetaAlias}}.NewBitsetMark({{$name}}FieldMax)
 	{{- range $field := $struct.References}}
 	m._{{$field.Name}} = New{{$field.Name}}()
 	{{- end}}
@@ -73,9 +74,7 @@ func (m *{{$name}}) Set{{$field.Name}}(v {{$field.Type}}) {
 	m.dirty{{$field.Name}}()
 }
 
-func (m *{{$name}}) dirty{{$field.Name}}() {
-	m.mark.Dirty({{$name}}Field{{$field.Name}}, m.applyDirty{{$field.Name}})
-}
+func (m *{{$name}}) dirty{{$field.Name}}() { m.mark.Dirty({{$name}}FieldIndex{{$field.Name}}) }
 
 func (m *{{$name}}) applyDirty{{$field.Name}}(p *{{$top.PBAlias}}.{{$name}}) {
 	p.{{$field.Name}} = m.Get{{$field.Name}}()
@@ -100,9 +99,7 @@ func (m *{{$name}}) Set{{$field.Name}}(v {{$field.Type}}) {
 	m.dirty{{$field.Name}}()
 }
 
-func (m *{{$name}}) dirty{{$field.Name}}() {
-	m.mark.Dirty({{$name}}Field{{$field.Name}}, m.applyDirty{{$field.Name}})
-}
+func (m *{{$name}}) dirty{{$field.Name}}() { m.mark.Dirty({{$name}}FieldIndex{{$field.Name}}) }
 
 func (m *{{$name}}) applyDirty{{$field.Name}}(p *{{$top.PBAlias}}.{{$name}}) {
 	if p.{{$field.Name}} == nil {
@@ -130,9 +127,7 @@ func (m *{{$name}}) Set{{$field.Name}}(v *{{$top.MetaAlias}}.{{$field.Extra}}{{$
 	m.dirty{{$field.Name}}()
 }
 
-func (m *{{$name}}) dirty{{$field.Name}}() {
-	m.mark.Dirty({{$name}}Field{{$field.Name}}, m.applyDirty{{$field.Name}})
-}
+func (m *{{$name}}) dirty{{$field.Name}}() { m.mark.Dirty({{$name}}FieldIndex{{$field.Name}}) }
 
 func (m *{{$name}}) applyDirty{{$field.Name}}(p *{{$top.PBAlias}}.{{$name}}) {
 	p.{{$field.Name}} = m.Get{{$field.Name}}().DirtyCollect(p.{{$field.Name}})
@@ -170,7 +165,7 @@ func (m *{{$name}}) ToProto() *{{$top.PBAlias}}.{{$name}} {
 
 // ResetDirty resets the dirty mark.
 func (m *{{$name}}) ResetDirty() {
-	m.mark.ResetDirty()
+	m.mark.Reset()
 	{{- range $field := $struct.References}}
 	m.Get{{$field.Name}}().ResetDirty()
 	{{- end}}
@@ -190,7 +185,9 @@ func (m *{{$name}}) Dyeing(d func())  {
 
 // DirtyCollect applies the dirty mark to the target.
 func (m *{{$name}}) DirtyCollect(target *{{$top.PBAlias}}.{{$name}}) {
-	m.mark.DirtyCollect(target)
+	for dirtyIdx := range m.mark.AllBits() {
+		_{{$name}}ApplyDirtyTable[dirtyIdx](m, target)
+	}
 	m.ResetDirty()
 }
 

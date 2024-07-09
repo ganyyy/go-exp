@@ -7,17 +7,26 @@ import (
 
 const (
 	_DataFieldIndex = iota - 1
-	DataFieldName
-	DataFieldInner
-	DataFieldStrMap
-	DataFieldInnerMap
-	DataFieldStrList
-	DataFieldInnerList
+	DataFieldIndexName
+	DataFieldIndexInner
+	DataFieldIndexStrMap
+	DataFieldIndexInnerMap
+	DataFieldIndexStrList
+	DataFieldIndexInnerList
 	DataFieldMax
 )
 
+var _DataApplyDirtyTable = []func(*Data, *pb123.Data){
+	DataFieldIndexName:      (*Data).applyDirtyName,
+	DataFieldIndexInner:     (*Data).applyDirtyInner,
+	DataFieldIndexStrMap:    (*Data).applyDirtyStrMap,
+	DataFieldIndexInnerMap:  (*Data).applyDirtyInnerMap,
+	DataFieldIndexStrList:   (*Data).applyDirtyStrList,
+	DataFieldIndexInnerList: (*Data).applyDirtyInnerList,
+}
+
 type Data struct {
-	mark       meta1.Mark[*pb123.Data]
+	mark       *meta1.BitsetMark
 	_Name      string
 	_Inner     *Inner
 	_StrMap    *meta1.ValueMap[string, string]
@@ -28,6 +37,7 @@ type Data struct {
 
 func NewData() *Data {
 	var m Data
+	m.mark = meta1.NewBitsetMark(DataFieldMax)
 	m._Inner = NewInner()
 	m._StrMap = meta1.NewValueMap[string, string]()
 	m._InnerMap = meta1.NewReferenceMap[string, *Inner, *pb123.Inner]()
@@ -52,9 +62,7 @@ func (m *Data) SetName(v string) {
 	m.dirtyName()
 }
 
-func (m *Data) dirtyName() {
-	m.mark.Dirty(DataFieldName, m.applyDirtyName)
-}
+func (m *Data) dirtyName() { m.mark.Dirty(DataFieldIndexName) }
 
 func (m *Data) applyDirtyName(p *pb123.Data) {
 	p.Name = m.GetName()
@@ -78,9 +86,7 @@ func (m *Data) SetInner(v *Inner) {
 	m.dirtyInner()
 }
 
-func (m *Data) dirtyInner() {
-	m.mark.Dirty(DataFieldInner, m.applyDirtyInner)
-}
+func (m *Data) dirtyInner() { m.mark.Dirty(DataFieldIndexInner) }
 
 func (m *Data) applyDirtyInner(p *pb123.Data) {
 	if p.Inner == nil {
@@ -107,9 +113,7 @@ func (m *Data) SetStrMap(v *meta1.ValueMap[string, string]) {
 	m.dirtyStrMap()
 }
 
-func (m *Data) dirtyStrMap() {
-	m.mark.Dirty(DataFieldStrMap, m.applyDirtyStrMap)
-}
+func (m *Data) dirtyStrMap() { m.mark.Dirty(DataFieldIndexStrMap) }
 
 func (m *Data) applyDirtyStrMap(p *pb123.Data) {
 	p.StrMap = m.GetStrMap().DirtyCollect(p.StrMap)
@@ -133,9 +137,7 @@ func (m *Data) SetInnerMap(v *meta1.ReferenceMap[string, *Inner, *pb123.Inner]) 
 	m.dirtyInnerMap()
 }
 
-func (m *Data) dirtyInnerMap() {
-	m.mark.Dirty(DataFieldInnerMap, m.applyDirtyInnerMap)
-}
+func (m *Data) dirtyInnerMap() { m.mark.Dirty(DataFieldIndexInnerMap) }
 
 func (m *Data) applyDirtyInnerMap(p *pb123.Data) {
 	p.InnerMap = m.GetInnerMap().DirtyCollect(p.InnerMap)
@@ -159,9 +161,7 @@ func (m *Data) SetStrList(v *meta1.ValueList[string]) {
 	m.dirtyStrList()
 }
 
-func (m *Data) dirtyStrList() {
-	m.mark.Dirty(DataFieldStrList, m.applyDirtyStrList)
-}
+func (m *Data) dirtyStrList() { m.mark.Dirty(DataFieldIndexStrList) }
 
 func (m *Data) applyDirtyStrList(p *pb123.Data) {
 	p.StrList = m.GetStrList().DirtyCollect(p.StrList)
@@ -185,9 +185,7 @@ func (m *Data) SetInnerList(v *meta1.ReferenceList[*Inner, *pb123.Inner]) {
 	m.dirtyInnerList()
 }
 
-func (m *Data) dirtyInnerList() {
-	m.mark.Dirty(DataFieldInnerList, m.applyDirtyInnerList)
-}
+func (m *Data) dirtyInnerList() { m.mark.Dirty(DataFieldIndexInnerList) }
 
 func (m *Data) applyDirtyInnerList(p *pb123.Data) {
 	p.InnerList = m.GetInnerList().DirtyCollect(p.InnerList)
@@ -217,7 +215,7 @@ func (m *Data) ToProto() *pb123.Data {
 
 // ResetDirty resets the dirty mark.
 func (m *Data) ResetDirty() {
-	m.mark.ResetDirty()
+	m.mark.Reset()
 	m.GetInner().ResetDirty()
 }
 
@@ -235,23 +233,30 @@ func (m *Data) Dyeing(d func()) {
 
 // DirtyCollect applies the dirty mark to the target.
 func (m *Data) DirtyCollect(target *pb123.Data) {
-	m.mark.DirtyCollect(target)
+	for dirtyIdx := range m.mark.AllBits() {
+		_DataApplyDirtyTable[dirtyIdx](m, target)
+	}
 	m.ResetDirty()
 }
 
 const (
 	_InnerFieldIndex = iota - 1
-	InnerFieldData
+	InnerFieldIndexData
 	InnerFieldMax
 )
 
+var _InnerApplyDirtyTable = []func(*Inner, *pb123.Inner){
+	InnerFieldIndexData: (*Inner).applyDirtyData,
+}
+
 type Inner struct {
-	mark  meta1.Mark[*pb123.Inner]
+	mark  *meta1.BitsetMark
 	_Data string
 }
 
 func NewInner() *Inner {
 	var m Inner
+	m.mark = meta1.NewBitsetMark(InnerFieldMax)
 	return &m
 }
 
@@ -271,9 +276,7 @@ func (m *Inner) SetData(v string) {
 	m.dirtyData()
 }
 
-func (m *Inner) dirtyData() {
-	m.mark.Dirty(InnerFieldData, m.applyDirtyData)
-}
+func (m *Inner) dirtyData() { m.mark.Dirty(InnerFieldIndexData) }
 
 func (m *Inner) applyDirtyData(p *pb123.Inner) {
 	p.Data = m.GetData()
@@ -293,7 +296,7 @@ func (m *Inner) ToProto() *pb123.Inner {
 
 // ResetDirty resets the dirty mark.
 func (m *Inner) ResetDirty() {
-	m.mark.ResetDirty()
+	m.mark.Reset()
 }
 
 // DirtyProto returns proto apply the dirty mark.
@@ -310,6 +313,8 @@ func (m *Inner) Dyeing(d func()) {
 
 // DirtyCollect applies the dirty mark to the target.
 func (m *Inner) DirtyCollect(target *pb123.Inner) {
-	m.mark.DirtyCollect(target)
+	for dirtyIdx := range m.mark.AllBits() {
+		_InnerApplyDirtyTable[dirtyIdx](m, target)
+	}
 	m.ResetDirty()
 }
