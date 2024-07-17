@@ -9,6 +9,7 @@ import (
 	"ganyyy.com/go-exp/helper"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/stats"
+	"google.golang.org/protobuf/proto"
 )
 
 type logger struct {
@@ -44,6 +45,9 @@ func NewHandle(reason string) stats.Handler {
 }
 
 func (h *handle) TagRPC(ctx context.Context, info *stats.RPCTagInfo) context.Context {
+
+	proto.Unmarshal(nil, nil)
+
 	return ctx
 	log.Printf("[%v] TagRPC info:%+v", h.tag, info)
 	return ctx

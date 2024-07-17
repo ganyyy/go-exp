@@ -53,3 +53,5 @@ func ReferenceTransfer[V IValue[T], T any](get IDyeing) transfer[V, T] {
 	transfer.onDel = func(v V) { v.Dyeing(nil) }
 	return transfer
 }
+
+func Pointer[T any](v T) *T { return &v }

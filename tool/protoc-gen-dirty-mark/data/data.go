@@ -65,7 +65,7 @@ func (m *Data) SetName(v string) {
 func (m *Data) dirtyName() { m.mark.Dirty(DataFieldIndexName) }
 
 func (m *Data) applyDirtyName(p *pb123.Data) {
-	p.Name = m.GetName()
+	p.Name = meta1.Pointer(m.GetName())
 }
 
 // GetInner gets the Inner.
@@ -204,7 +204,7 @@ func (m *Data) FromProto(p *pb123.Data) {
 // ToProto gets the target from the value.
 func (m *Data) ToProto() *pb123.Data {
 	var p pb123.Data
-	p.Name = m.GetName()
+	p.Name = meta1.Pointer(m.GetName())
 	p.Inner = m.GetInner().ToProto()
 	p.StrMap = m.GetStrMap().ToProto()
 	p.InnerMap = m.GetInnerMap().ToProto()

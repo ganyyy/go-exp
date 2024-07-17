@@ -34,6 +34,7 @@ func (f *File) Render() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// return sb.Bytes(), nil
 	ret, err := format.Source(sb.Bytes())
 	if err != nil {
 		return nil, err
@@ -56,10 +57,11 @@ type Struct struct {
 }
 
 // AddValues adds a value to the struct.
-func (s *Struct) AddValues(name, typ string) {
+func (s *Struct) AddValues(name, typ string, extra ...string) {
 	s.Values = append(s.Values, Field{
-		Type: typ,
-		Name: name,
+		Type:  typ,
+		Name:  name,
+		Extra: strings.Join(extra, " "),
 	})
 }
 

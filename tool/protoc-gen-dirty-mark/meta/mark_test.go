@@ -5,6 +5,9 @@ import (
 	"testing"
 
 	"protoc-gen-dirty-mark/pb"
+
+	"google.golang.org/protobuf/encoding/protowire"
+	"google.golang.org/protobuf/proto"
 )
 
 type MemoryData struct {
@@ -34,7 +37,7 @@ func (*MemoryData) NewValue() IValue[*pb.Data] {
 
 // FromProto converts from ProtoData.
 func (m *MemoryData) FromProto(p *pb.Data) {
-	m.SetName(p.Name)
+	m.SetName(p.GetName())
 	m.GetInner().FromProto(p.Inner)
 	m.GetStrMap().FromProto(p.StrMap)
 	m.GetInnerMap().FromProto(p.InnerMap)
@@ -43,12 +46,12 @@ func (m *MemoryData) FromProto(p *pb.Data) {
 
 // ToProto converts to ProtoData.
 func (m *MemoryData) ToProto() *pb.Data {
-	var proto pb.Data
-	proto.Name = m.Name
-	proto.Inner = m.Inner.ToProto()
-	proto.StrMap = m.StrMap.ToProto()
-	proto.InnerMap = m.InnerMap.ToProto()
-	return &proto
+	var pd pb.Data
+	pd.Name = proto.String(m.Name)
+	pd.Inner = m.Inner.ToProto()
+	pd.StrMap = m.StrMap.ToProto()
+	pd.InnerMap = m.InnerMap.ToProto()
+	return &pd
 }
 
 // ResetDirty resets the dirty mark.
@@ -74,7 +77,7 @@ func (m *MemoryData) dirtyName() {
 
 // setProtoName applies the name.
 func (m *MemoryData) setProtoName(p *pb.Data) {
-	p.Name = m.Name
+	p.Name = proto.String(m.Name)
 }
 
 // GetInner gets the inner.
@@ -279,6 +282,15 @@ func TestMark(t *testing.T) {
 	bs, _ = json.Marshal(&p)
 	t.Log(string(bs))
 
+	// _ = proto.Unmarshal(bs, &p)
+
+	// input := protoiface.UnmarshalInput{
+	// 	Message:  p.ProtoReflect(),
+	// 	Buf:      bs,
+	// 	Resolver: protoregistry.GlobalTypes,
+	// 	Depth:    protowire.DefaultRecursionLimit,
+	// }
+
 }
 
 func TestBitSet(t *testing.T) {
@@ -295,4 +307,66 @@ func TestBitSet(t *testing.T) {
 	for i := range b.AllBits() {
 		t.Log(i)
 	}
+}
+
+func TestProtoWire(t *testing.T) {
+	var p pb.Data
+	p.Name = proto.String("name")
+	p.Inner = &pb.Inner{
+		Data: "inner",
+		Age:  1,
+	}
+	p.StrMap = map[string]string{
+		"key1": "value1",
+		"key2": "value26",
+	}
+	p.InnerMap = map[string]*pb.Inner{
+		"key1": {Data: "inner133", Age: 123456},
+		"key2": {Data: "inner2444", Age: 1},
+	}
+	p.StrList = []string{"str1", "str25"}
+	p.InnerList = []*pb.Inner{
+		{Data: "inner11"},
+		{Data: "inner2222"},
+	}
+
+	// p.Reset()
+	// p.Inner = &pb.Inner{
+	// 	Data: "inner",
+	// 	Age:  1,
+	// }
+
+	bs, _ := proto.Marshal(&p)
+	_ = proto.Unmarshal(bs, &p)
+
+	pr := p.ProtoReflect()
+
+	fields := pr.Descriptor().Fields()
+
+	_ = fields
+
+	var fieldsData = make(map[protowire.Number][]byte)
+
+	for len(bs) > 0 {
+		num, typ, headLength := protowire.ConsumeTag(bs)
+		if headLength < 0 {
+			t.Fatal(headLength)
+		}
+		bodyLength := protowire.ConsumeFieldValue(num, typ, bs[headLength:])
+		if bodyLength < 0 {
+			t.Fatal(bodyLength)
+		}
+		total := headLength + bodyLength
+		t.Log(num, typ, headLength, bodyLength)
+		fieldsData[num] = append(fieldsData[num], bs[:total]...)
+		bs = bs[total:]
+	}
+
+	var bs2 []byte
+	bs2 = append(bs2, fieldsData[2]...)
+	bs2 = append(bs2, fieldsData[32345]...)
+	bs2 = append(bs2, fieldsData[62231]...)
+
+	_ = proto.Unmarshal(bs2, &p)
+	t.Logf("%+v", p.String())
 }

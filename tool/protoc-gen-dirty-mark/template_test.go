@@ -22,7 +22,7 @@ func TestTemplate(t *testing.T) {
 
 	var data Struct
 	data.Name = "Data"
-	data.AddValues("Name", "string")
+	data.AddValues("Name", "string", "optional")
 	data.AddReferences("Inner")
 	data.AddValuesMap("StrMap", "string", "string")
 	data.AddReferencesMap("InnerMap", "string", "Inner")
@@ -74,6 +74,7 @@ func TestData(t *testing.T) {
 	logDirty()
 
 	innerList := meta.NewReferenceList[*data.Inner, *pb.Inner]()
+	innerList.Add(i)
 
 	strMap.Del("key")
 	logDirty()

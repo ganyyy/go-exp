@@ -4,11 +4,11 @@ const FileTemplate = `package {{.Package}}
 
 import (
 	{{- range $path, $alias := .Imports}}
-	{{- if $alias}}
+		{{- if $alias}}
 	{{$alias}} "{{$path}}"
-	{{- else}}
+		{{- else}}
 	"{{$path}}"
-	{{- end}}
+		{{- end}}
 	{{- end}}
 )
 
@@ -77,7 +77,11 @@ func (m *{{$name}}) Set{{$field.Name}}(v {{$field.Type}}) {
 func (m *{{$name}}) dirty{{$field.Name}}() { m.mark.Dirty({{$name}}FieldIndex{{$field.Name}}) }
 
 func (m *{{$name}}) applyDirty{{$field.Name}}(p *{{$top.PBAlias}}.{{$name}}) {
+	{{- if eq $field.Extra "optional" -}}
+	p.{{$field.Name}} = {{$top.MetaAlias}}.Pointer(m.Get{{$field.Name}}())
+	{{- else -}}
 	p.{{$field.Name}} = m.Get{{$field.Name}}()
+	{{- end}}
 }
 {{- end}}
 {{- range $field := $struct.References}}
@@ -152,7 +156,11 @@ func (m *{{$name}}) FromProto(p *{{$top.PBAlias}}.{{$name}}) {
 func (m *{{$name}}) ToProto() *{{$top.PBAlias}}.{{$name}} {
 	var p {{$top.PBAlias}}.{{$name}}
 	{{- range $field := $struct.Values}}
+		{{- if eq $field.Extra "optional"}}
+	p.{{$field.Name}} = {{$top.MetaAlias}}.Pointer(m.Get{{$field.Name}}())
+		{{- else }}
 	p.{{$field.Name}} = m.Get{{$field.Name}}()
+		{{- end}}
 	{{- end}}
 	{{- range $field := $struct.References}}
 	p.{{$field.Name}} = m.Get{{$field.Name}}().ToProto()
