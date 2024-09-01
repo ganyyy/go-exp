@@ -185,6 +185,9 @@ func (m *{{$name}}) resetDirty() {
 	{{- range $field := $struct.References}}
 	m.Get{{$field.Name}}().resetDirty()
 	{{- end}}
+	{{- range $field := $struct.Containers}}
+	{{$top.MetaAlias}}.ResetHelper(m.Get{{$field.Name}}())
+	{{- end}}
 }
 
 // DirtyProto returns proto apply the dirty mark.

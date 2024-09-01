@@ -28,10 +28,6 @@ func (t *transfer[V, T]) delHook(v V) {
 	}
 }
 
-type IDyeing interface {
-	GetDyeing() func()
-}
-
 func v2v[V any](v V) V { return v }
 
 func ValueTransfer[V any]() transfer[V, V] {

@@ -112,6 +112,20 @@ type ValueList[V any] struct {
 	innerList[V, V]
 }
 
+// FromProto sets the value from the target.
+func (m *ValueList[V]) FromProto(target []V) {
+	m.dirty()
+	m.values = make([]V, len(target))
+	copy(m.values, target)
+}
+
+// ToProto gets the target from the value.
+func (m *ValueList[V]) ToProto() []V {
+	ret := make([]V, len(m.values))
+	copy(ret, m.values)
+	return ret
+}
+
 func NewValueList[V any]() *ValueList[V] {
 	var m = &ValueList[V]{}
 	m.transfer = ValueTransfer[V]()

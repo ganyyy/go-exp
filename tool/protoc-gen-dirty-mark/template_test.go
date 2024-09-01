@@ -12,10 +12,12 @@ import (
 
 func TestTemplate(t *testing.T) {
 	var file File
+	file.ImportInfo = &ImportInfo{}
 
 	var inner Struct
 	inner.Name = "Inner"
 	inner.AddValues("Data", "string")
+	inner.AddValues("Age", "int32")
 
 	*pbAlias = "pb123"
 	*metaAlias = "meta1"
@@ -72,7 +74,14 @@ func TestData(t *testing.T) {
 		t.Logf("%+v", dirty.String())
 	}
 
+	strList := dataObj.GetStrList()
+
+	strList.Add("str1")
+	strList.Add("str2")
 	logDirty()
+	strs := strList.ToProto()
+	t.Logf("%+v", strs)
+
 	dataObj.SetName("test2")
 	logDirty()
 

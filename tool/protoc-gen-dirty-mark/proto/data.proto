@@ -19,3 +19,8 @@ message Data {
     repeated string str_list = 5;
     repeated Inner inner_list = 62231;
 }
+
+message Data2 {
+    optional int32 id = 1;
+    bytes data = 2;
+}
