@@ -4,7 +4,7 @@ import (
 	"os"
 	"protoc-gen-dirty-mark/data"
 	"protoc-gen-dirty-mark/meta"
-	"protoc-gen-dirty-mark/pb"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -53,29 +53,50 @@ func TestTemplate(t *testing.T) {
 }
 
 func TestData(t *testing.T) {
-	var d = data.NewData()
-	d.SetName("test")
-	i := d.GetInner()
-	i.SetData("inner")
+	var dataObj = data.NewData()
+	dataObj.SetName("test")
+	innerObj := dataObj.GetInner()
+	innerObj.SetData("inner")
 
 	logDirty := func() {
-		dirty := d.DirtyProto()
+
+		var pc [1]uintptr
+		n := runtime.Callers(2, pc[:])
+		if n == 1 {
+			frames := runtime.CallersFrames(pc[:])
+			frame, _ := frames.Next()
+			t.Logf("Called from %s:%d", frame.Function, frame.Line)
+		}
+
+		dirty := dataObj.DirtyProto()
 		t.Logf("%+v", dirty.String())
 	}
 
 	logDirty()
-	d.SetName("test2")
+	dataObj.SetName("test2")
 	logDirty()
 
 	strMap := meta.NewValueMap[string, string]()
 	strMap.Set("key", "value")
 	strMap.Set("key2", "value2")
-	d.SetStrMap(strMap)
+	dataObj.SetStrMap(strMap)
 	logDirty()
 
-	innerList := meta.NewReferenceList[*data.Inner, *pb.Inner]()
-	innerList.Add(i)
+	innerList := meta.NewReferenceList[*data.Inner]()
+	dataObj.SetInnerList(innerList)
+	dataObj.SetInner(data.NewInner())
+	innerList.Add(innerObj)
+	logDirty()
+	innerObj, ok := innerList.Remove(0)
+	require.True(t, ok)
+	innerList.Insert(0, innerObj)
+	logDirty()
+
+	dataObj.GetInnerMap()
 
 	strMap.Del("key")
+	logDirty()
+
+	innerObj.SetData("inner2")
 	logDirty()
 }

@@ -1,7 +1,12 @@
 package meta
 
+import (
+	"iter"
+	"slices"
+)
+
 type innerList[V, T any] struct {
-	dyeingMark
+	dirtyMark
 	values []V
 	transfer[V, T]
 }
@@ -28,19 +33,19 @@ func (m *innerList[V, T]) GetExisted(index int) (V, bool) {
 	return v, true
 }
 
-// Set sets the value of the index.
-func (m *innerList[V, T]) Set(index int, value V) {
-	m.dyed() // mark self as dirty
-	if index < 0 || index >= len(m.values) {
+// Insert inserts the value to the list.
+func (m *innerList[V, T]) Insert(index int, value V) {
+	m.dirty()
+	if index < 0 || index > len(m.values) {
 		return
 	}
 	m.setHook(value)
-	m.values[index] = value
+	m.values = append(m.values[:index], append([]V{value}, m.values[index:]...)...)
 }
 
 // Add adds the value to the list.
 func (m *innerList[V, T]) Add(value ...V) {
-	m.dyed() // mark self as dirty
+	m.dirty()
 	for _, v := range value {
 		m.setHook(v)
 		m.values = append(m.values, v)
@@ -48,21 +53,21 @@ func (m *innerList[V, T]) Add(value ...V) {
 }
 
 // Remove removes the value from the list.
-func (m *innerList[V, T]) Remove(index int) V {
+func (m *innerList[V, T]) Remove(index int) (V, bool) {
 	if index < 0 || index >= len(m.values) {
 		var empty V
-		return empty
+		return empty, false
 	}
-	m.dyed() // mark self as dirty
+	m.dirty()
 	v := m.values[index]
 	m.delHook(v)
 	m.values = append(m.values[:index], m.values[index+1:]...)
-	return v
+	return v, true
 }
 
 // FromProto sets the value from the target.
 func (m *innerList[V, T]) FromProto(target []T) {
-	m.dyed() // mark self as dirty
+	m.dirty()
 	m.values = make([]V, len(target))
 	for i, t := range target {
 		m.values[i] = m.t2v(t)
@@ -79,18 +84,24 @@ func (m *innerList[V, T]) ToProto() []T {
 }
 
 // Range iterates the list.
-func (m *innerList[V, T]) Range(f func(int, V) bool) {
-	for i, v := range m.values {
-		if !f(i, v) {
-			break
+func (m *innerList[V, T]) Range() iter.Seq2[int, V] {
+	return func(yield func(int, V) bool) {
+		for i, v := range m.values {
+			if !yield(i, v) {
+				break
+			}
 		}
 	}
 }
 
 // DirtyCollect collects the list from the target.
 func (m *innerList[V, T]) DirtyCollect(target []T) []T {
+	target = slices.Grow(target, m.Count())
 	for _, v := range m.values {
 		target = append(target, m.v2t(v))
+	}
+	if len(target) == 0 {
+		return make([]T, 0)
 	}
 	return target
 }

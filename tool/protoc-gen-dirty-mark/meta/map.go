@@ -1,10 +1,12 @@
 package meta
 
+import "iter"
+
 // innerMap is a map that stores the value of each field.
 // K: the type of the key
 // V: the type of the value
 type innerMap[K comparable, V, T any] struct {
-	dyeingMark
+	dirtyMark
 	transfer[V, T]
 	kvs map[K]V
 }
@@ -31,7 +33,7 @@ func (m *innerMap[K, V, T]) GetExisted(key K) (V, bool) {
 
 // Set sets the value of the key.
 func (m *innerMap[K, V, T]) Set(key K, value V) {
-	m.dyed() // mark self as dirty
+	m.dirty()
 	if m.kvs == nil {
 		m.kvs = make(map[K]V)
 	}
@@ -44,7 +46,7 @@ func (m *innerMap[K, V, T]) Del(key K) V {
 	if v, ok := m.kvs[key]; !ok {
 		return v // return the default value
 	} else {
-		m.dyed() // mark self as dirty
+		m.dirty()
 		m.delHook(v)
 		delete(m.kvs, key)
 		return v
@@ -53,7 +55,7 @@ func (m *innerMap[K, V, T]) Del(key K) V {
 
 // FromProto sets the value from the target.
 func (m *innerMap[K, V, T]) FromProto(target map[K]T) {
-	m.dyed() // mark self as dirty
+	m.dirty()
 	m.kvs = make(map[K]V, len(target))
 	for k, t := range target {
 		m.kvs[k] = m.t2v(t)
@@ -74,17 +76,19 @@ func (m *innerMap[K, V, T]) Merge(target map[K]T) {
 	if len(target) == 0 {
 		return
 	}
-	m.dyed() // mark self as dirty
+	m.dirty()
 	for k, v := range target {
 		m.kvs[k] = m.t2v(v)
 	}
 }
 
 // Range applies the function to each key-value pair.
-func (m *innerMap[K, V, T]) Range(f func(K, V) bool) {
-	for k, v := range m.kvs {
-		if !f(k, v) {
-			break
+func (m *innerMap[K, V, T]) Range() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for k, v := range m.kvs {
+			if !yield(k, v) {
+				break
+			}
 		}
 	}
 }

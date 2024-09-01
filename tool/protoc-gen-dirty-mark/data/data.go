@@ -59,10 +59,8 @@ func (m *Data) GetName() string {
 // SetName sets the Name.
 func (m *Data) SetName(v string) {
 	m._Name = v
-	m.dirtyName()
+	meta1.MarkHelper(m.mark, DataFieldIndexName)
 }
-
-func (m *Data) dirtyName() { m.mark.Dirty(DataFieldIndexName) }
 
 func (m *Data) applyDirtyName(p *pb123.Data) {
 	p.Name = meta1.Pointer(m.GetName())
@@ -73,20 +71,24 @@ func (m *Data) GetInner() *Inner {
 	if m._Inner == nil {
 		m._Inner = NewInner()
 	}
-	m._Inner.Dyeing(m.dirtyInner)
+	meta1.SetMarkHelper(m._Inner.mark, m.mark, DataFieldIndexInner)
 	return m._Inner
 }
 
 // SetInner sets the Inner.
 func (m *Data) SetInner(v *Inner) {
+	if m._Inner == v {
+		return
+	}
+	if m._Inner != nil {
+		meta1.SetMarkHelper(m._Inner.mark, nil, 0)
+	}
 	m._Inner = v
 	if v != nil {
-		v.Dyeing(m.dirtyInner)
+		meta1.SetMarkHelper(m._Inner.mark, m.mark, DataFieldIndexInner)
 	}
-	m.dirtyInner()
+	meta1.MarkHelper(m.mark, DataFieldIndexInner)
 }
-
-func (m *Data) dirtyInner() { m.mark.Dirty(DataFieldIndexInner) }
 
 func (m *Data) applyDirtyInner(p *pb123.Data) {
 	if p.Inner == nil {
@@ -100,20 +102,24 @@ func (m *Data) GetStrMap() *meta1.ValueMap[string, string] {
 	if m._StrMap == nil {
 		m._StrMap = meta1.NewValueMap[string, string]()
 	}
-	m._StrMap.Dyeing(m.dirtyStrMap)
+	meta1.SetMarkHelper(m._StrMap, m.mark, DataFieldIndexStrMap)
 	return m._StrMap
 }
 
 // SetStrMap sets the StrMap.
 func (m *Data) SetStrMap(v *meta1.ValueMap[string, string]) {
+	if m._StrMap == v {
+		return
+	}
+	if m._StrMap != nil {
+		meta1.SetMarkHelper(m._StrMap, nil, 0)
+	}
 	m._StrMap = v
 	if v != nil {
-		v.Dyeing(m.dirtyStrMap)
+		meta1.SetMarkHelper(m._StrMap, m.mark, DataFieldIndexStrMap)
 	}
-	m.dirtyStrMap()
+	meta1.MarkHelper(m.mark, DataFieldIndexStrMap)
 }
-
-func (m *Data) dirtyStrMap() { m.mark.Dirty(DataFieldIndexStrMap) }
 
 func (m *Data) applyDirtyStrMap(p *pb123.Data) {
 	p.StrMap = m.GetStrMap().DirtyCollect(p.StrMap)
@@ -124,20 +130,24 @@ func (m *Data) GetInnerMap() *meta1.ReferenceMap[string, *Inner, *pb123.Inner] {
 	if m._InnerMap == nil {
 		m._InnerMap = meta1.NewReferenceMap[string, *Inner, *pb123.Inner]()
 	}
-	m._InnerMap.Dyeing(m.dirtyInnerMap)
+	meta1.SetMarkHelper(m._InnerMap, m.mark, DataFieldIndexInnerMap)
 	return m._InnerMap
 }
 
 // SetInnerMap sets the InnerMap.
 func (m *Data) SetInnerMap(v *meta1.ReferenceMap[string, *Inner, *pb123.Inner]) {
+	if m._InnerMap == v {
+		return
+	}
+	if m._InnerMap != nil {
+		meta1.SetMarkHelper(m._InnerMap, nil, 0)
+	}
 	m._InnerMap = v
 	if v != nil {
-		v.Dyeing(m.dirtyInnerMap)
+		meta1.SetMarkHelper(m._InnerMap, m.mark, DataFieldIndexInnerMap)
 	}
-	m.dirtyInnerMap()
+	meta1.MarkHelper(m.mark, DataFieldIndexInnerMap)
 }
-
-func (m *Data) dirtyInnerMap() { m.mark.Dirty(DataFieldIndexInnerMap) }
 
 func (m *Data) applyDirtyInnerMap(p *pb123.Data) {
 	p.InnerMap = m.GetInnerMap().DirtyCollect(p.InnerMap)
@@ -148,20 +158,24 @@ func (m *Data) GetStrList() *meta1.ValueList[string] {
 	if m._StrList == nil {
 		m._StrList = meta1.NewValueList[string]()
 	}
-	m._StrList.Dyeing(m.dirtyStrList)
+	meta1.SetMarkHelper(m._StrList, m.mark, DataFieldIndexStrList)
 	return m._StrList
 }
 
 // SetStrList sets the StrList.
 func (m *Data) SetStrList(v *meta1.ValueList[string]) {
+	if m._StrList == v {
+		return
+	}
+	if m._StrList != nil {
+		meta1.SetMarkHelper(m._StrList, nil, 0)
+	}
 	m._StrList = v
 	if v != nil {
-		v.Dyeing(m.dirtyStrList)
+		meta1.SetMarkHelper(m._StrList, m.mark, DataFieldIndexStrList)
 	}
-	m.dirtyStrList()
+	meta1.MarkHelper(m.mark, DataFieldIndexStrList)
 }
-
-func (m *Data) dirtyStrList() { m.mark.Dirty(DataFieldIndexStrList) }
 
 func (m *Data) applyDirtyStrList(p *pb123.Data) {
 	p.StrList = m.GetStrList().DirtyCollect(p.StrList)
@@ -172,20 +186,24 @@ func (m *Data) GetInnerList() *meta1.ReferenceList[*Inner, *pb123.Inner] {
 	if m._InnerList == nil {
 		m._InnerList = meta1.NewReferenceList[*Inner, *pb123.Inner]()
 	}
-	m._InnerList.Dyeing(m.dirtyInnerList)
+	meta1.SetMarkHelper(m._InnerList, m.mark, DataFieldIndexInnerList)
 	return m._InnerList
 }
 
 // SetInnerList sets the InnerList.
 func (m *Data) SetInnerList(v *meta1.ReferenceList[*Inner, *pb123.Inner]) {
+	if m._InnerList == v {
+		return
+	}
+	if m._InnerList != nil {
+		meta1.SetMarkHelper(m._InnerList, nil, 0)
+	}
 	m._InnerList = v
 	if v != nil {
-		v.Dyeing(m.dirtyInnerList)
+		meta1.SetMarkHelper(m._InnerList, m.mark, DataFieldIndexInnerList)
 	}
-	m.dirtyInnerList()
+	meta1.MarkHelper(m.mark, DataFieldIndexInnerList)
 }
-
-func (m *Data) dirtyInnerList() { m.mark.Dirty(DataFieldIndexInnerList) }
 
 func (m *Data) applyDirtyInnerList(p *pb123.Data) {
 	p.InnerList = m.GetInnerList().DirtyCollect(p.InnerList)
@@ -213,10 +231,10 @@ func (m *Data) ToProto() *pb123.Data {
 	return &p
 }
 
-// ResetDirty resets the dirty mark.
-func (m *Data) ResetDirty() {
-	m.mark.Reset()
-	m.GetInner().ResetDirty()
+// resetDirty resets the dirty mark.
+func (m *Data) resetDirty() {
+	meta1.ResetHelper(m.mark)
+	m.GetInner().resetDirty()
 }
 
 // DirtyProto returns proto apply the dirty mark.
@@ -226,17 +244,17 @@ func (m *Data) DirtyProto() *pb123.Data {
 	return &p
 }
 
-// Dyeing set the dyeing function.
-func (m *Data) Dyeing(d func()) {
-	m.mark.Dyeing(d)
-}
-
 // DirtyCollect applies the dirty mark to the target.
 func (m *Data) DirtyCollect(target *pb123.Data) {
-	for dirtyIdx := range m.mark.AllBits() {
+	for dirtyIdx := range meta1.DirtyBitsHelper(m.mark) {
 		_DataApplyDirtyTable[dirtyIdx](m, target)
 	}
-	m.ResetDirty()
+	m.resetDirty()
+}
+
+// GetMark gets the mark.
+func (m *Data) GetMark() meta1.IMark {
+	return m.mark
 }
 
 const (
@@ -273,10 +291,8 @@ func (m *Inner) GetData() string {
 // SetData sets the Data.
 func (m *Inner) SetData(v string) {
 	m._Data = v
-	m.dirtyData()
+	meta1.MarkHelper(m.mark, InnerFieldIndexData)
 }
-
-func (m *Inner) dirtyData() { m.mark.Dirty(InnerFieldIndexData) }
 
 func (m *Inner) applyDirtyData(p *pb123.Inner) {
 	p.Data = m.GetData()
@@ -294,9 +310,9 @@ func (m *Inner) ToProto() *pb123.Inner {
 	return &p
 }
 
-// ResetDirty resets the dirty mark.
-func (m *Inner) ResetDirty() {
-	m.mark.Reset()
+// resetDirty resets the dirty mark.
+func (m *Inner) resetDirty() {
+	meta1.ResetHelper(m.mark)
 }
 
 // DirtyProto returns proto apply the dirty mark.
@@ -306,15 +322,15 @@ func (m *Inner) DirtyProto() *pb123.Inner {
 	return &p
 }
 
-// Dyeing set the dyeing function.
-func (m *Inner) Dyeing(d func()) {
-	m.mark.Dyeing(d)
-}
-
 // DirtyCollect applies the dirty mark to the target.
 func (m *Inner) DirtyCollect(target *pb123.Inner) {
-	for dirtyIdx := range m.mark.AllBits() {
+	for dirtyIdx := range meta1.DirtyBitsHelper(m.mark) {
 		_InnerApplyDirtyTable[dirtyIdx](m, target)
 	}
-	m.ResetDirty()
+	m.resetDirty()
+}
+
+// GetMark gets the mark.
+func (m *Inner) GetMark() meta1.IMark {
+	return m.mark
 }

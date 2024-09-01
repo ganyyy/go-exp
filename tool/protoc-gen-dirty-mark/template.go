@@ -71,10 +71,9 @@ func (m *{{$name}}) Get{{$field.Name}}() {{$field.Type}} {
 // Set{{$field.Name}} sets the {{$field.Name}}.
 func (m *{{$name}}) Set{{$field.Name}}(v {{$field.Type}}) {
 	m._{{$field.Name}} = v
-	m.dirty{{$field.Name}}()
+	{{$top.MetaAlias}}.MarkHelper(m.mark, {{$name}}FieldIndex{{$field.Name}})
 }
 
-func (m *{{$name}}) dirty{{$field.Name}}() { m.mark.Dirty({{$name}}FieldIndex{{$field.Name}}) }
 
 func (m *{{$name}}) applyDirty{{$field.Name}}(p *{{$top.PBAlias}}.{{$name}}) {
 	{{- if eq $field.Extra "optional" -}}
@@ -90,20 +89,24 @@ func (m *{{$name}}) Get{{$field.Name}}() {{$field.Type}} {
 	if m._{{$field.Name}} == nil {
 		m._{{$field.Name}} = New{{$field.Name}}()
 	}
-	m._{{$field.Name}}.Dyeing(m.dirty{{$field.Name}})
+	{{$top.MetaAlias}}.SetMarkHelper(m._{{$field.Name}}.mark, m.mark, {{$name}}FieldIndex{{$field.Name}}) 
 	return m._{{$field.Name}}
 }
 
 // Set{{$field.Name}} sets the {{$field.Name}}.
 func (m *{{$name}}) Set{{$field.Name}}(v {{$field.Type}}) {
+	if m._{{$field.Name}} == v {
+		return
+	}
+	if m._{{$field.Name}} != nil {
+		{{$top.MetaAlias}}.SetMarkHelper(m._{{$field.Name}}.mark, nil, 0) 
+	}
 	m._{{$field.Name}} = v
 	if v != nil {
-		v.Dyeing(m.dirty{{$field.Name}})
+		{{$top.MetaAlias}}.SetMarkHelper(m._{{$field.Name}}.mark, m.mark, {{$name}}FieldIndex{{$field.Name}}) 
 	}
-	m.dirty{{$field.Name}}()
+	{{$top.MetaAlias}}.MarkHelper(m.mark, {{$name}}FieldIndex{{$field.Name}})
 }
-
-func (m *{{$name}}) dirty{{$field.Name}}() { m.mark.Dirty({{$name}}FieldIndex{{$field.Name}}) }
 
 func (m *{{$name}}) applyDirty{{$field.Name}}(p *{{$top.PBAlias}}.{{$name}}) {
 	if p.{{$field.Name}} == nil {
@@ -118,20 +121,25 @@ func (m *{{$name}}) Get{{$field.Name}}() *{{$top.MetaAlias}}.{{$field.Extra}}{{$
 	if m._{{$field.Name}} == nil {
 		m._{{$field.Name}} = {{$top.MetaAlias}}.New{{$field.Extra}}{{$field.Type}}()
 	}
-	m._{{$field.Name}}.Dyeing(m.dirty{{$field.Name}})
+	{{$top.MetaAlias}}.SetMarkHelper(m._{{$field.Name}}, m.mark, {{$name}}FieldIndex{{$field.Name}}) 
 	return m._{{$field.Name}}
 }
 
 // Set{{$field.Name}} sets the {{$field.Name}}.
 func (m *{{$name}}) Set{{$field.Name}}(v *{{$top.MetaAlias}}.{{$field.Extra}}{{$field.Type}}) {
+	if m._{{$field.Name}} == v {
+		return
+	}
+	if m._{{$field.Name}} != nil {
+		{{$top.MetaAlias}}.SetMarkHelper(m._{{$field.Name}}, nil, 0) 
+	}
 	m._{{$field.Name}} = v
 	if v != nil {
-		v.Dyeing(m.dirty{{$field.Name}})
+		{{$top.MetaAlias}}.SetMarkHelper(m._{{$field.Name}}, m.mark, {{$name}}FieldIndex{{$field.Name}})
 	}
-	m.dirty{{$field.Name}}()
+	{{$top.MetaAlias}}.MarkHelper(m.mark, {{$name}}FieldIndex{{$field.Name}})
 }
 
-func (m *{{$name}}) dirty{{$field.Name}}() { m.mark.Dirty({{$name}}FieldIndex{{$field.Name}}) }
 
 func (m *{{$name}}) applyDirty{{$field.Name}}(p *{{$top.PBAlias}}.{{$name}}) {
 	p.{{$field.Name}} = m.Get{{$field.Name}}().DirtyCollect(p.{{$field.Name}})
@@ -171,11 +179,11 @@ func (m *{{$name}}) ToProto() *{{$top.PBAlias}}.{{$name}} {
 	return &p
 }
 
-// ResetDirty resets the dirty mark.
-func (m *{{$name}}) ResetDirty() {
-	m.mark.Reset()
+// resetDirty resets the dirty mark.
+func (m *{{$name}}) resetDirty() {
+	{{$top.MetaAlias}}.ResetHelper(m.mark)
 	{{- range $field := $struct.References}}
-	m.Get{{$field.Name}}().ResetDirty()
+	m.Get{{$field.Name}}().resetDirty()
 	{{- end}}
 }
 
@@ -186,17 +194,18 @@ func (m *{{$name}}) DirtyProto() *{{$top.PBAlias}}.{{$name}} {
 	return &p
 }
 
-// Dyeing set the dyeing function.
-func (m *{{$name}}) Dyeing(d func())  {
-	m.mark.Dyeing(d)
-}
 
 // DirtyCollect applies the dirty mark to the target.
 func (m *{{$name}}) DirtyCollect(target *{{$top.PBAlias}}.{{$name}}) {
-	for dirtyIdx := range m.mark.AllBits() {
+	for dirtyIdx := range {{$top.MetaAlias}}.DirtyBitsHelper(m.mark) {
 		_{{$name}}ApplyDirtyTable[dirtyIdx](m, target)
 	}
-	m.ResetDirty()
+	m.resetDirty()
+}
+
+// GetMark gets the mark.
+func (m *{{$name}}) GetMark() {{$top.MetaAlias}}.IMark {
+	return m.mark
 }
 
 {{- end}}
