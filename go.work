@@ -10,6 +10,7 @@ use (
 	./tool/protoc-gen-go-handle
 	./demo/nats/jetstream
 	./tool/protoc-gen-dirty-mark
+	./tool/protoc-gen-readonly
 //./remote/nats.go
 //./work/bar
 //./work/foo

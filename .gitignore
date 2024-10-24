@@ -10,6 +10,9 @@
 !*.yml
 !*.yaml
 !*.conf
+!*.proto
+!*.sh
+!go.sum
 */_obj/
 .idea/
 remote/

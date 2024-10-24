@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "gen/proto";
+
+service LogicHandle {
+    rpc GetPlayerInfo(GetPlayerInfoReq) returns (GetPlayerInfoRsp){};
+}
+
+message GetPlayerInfoReq {
+    string Acid = 1;
+}
+
+message GetPlayerInfoRsp {
+    string Name = 1;
+    int64 Age = 2;
+    string Address = 3;
+    string Acid = 4;
+}

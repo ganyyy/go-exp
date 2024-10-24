@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package player;
+
+option go_package = "protoc-gen-readonly/pb";
+
+import "proto/data/data.proto";
+
+enum State {
+    Unknown = 0;
+    Login = 1;
+    Logout = 2;
+}
+
+message Player {
+    string name = 1;
+    repeated data.SimpleData sa = 2;
+    map<int32, data.ReferencedData> ma = 3;
+    data.SimpleData da = 4;
+    optional int32 age = 5;
+    State state = 6;
+    optional State state2 = 7;
+    bytes data = 8;
+}
