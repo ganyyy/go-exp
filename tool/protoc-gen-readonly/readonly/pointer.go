@@ -4,12 +4,11 @@ type Pointer[T any] struct {
 	inner *T
 }
 
-func NewPointer[T any](inner **T) Pointer[T] {
-	if inner == nil || *inner == nil {
+func NewPointer[T any](inner *T) Pointer[T] {
+	if inner == nil {
 		return Pointer[T]{inner: nil}
 	}
-	p := *inner
-	*inner = nil
+	p := inner
 	return Pointer[T]{inner: p}
 }
 

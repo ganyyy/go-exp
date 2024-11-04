@@ -18,20 +18,19 @@ type PlayerReadOnly struct {
 	_Data   readonly.List[byte]
 }
 
-func NewPlayerReadOnly(p **Player) *PlayerReadOnly {
-	if p == nil || *p == nil {
+func NewPlayerReadOnly(p *Player) *PlayerReadOnly {
+	if p == nil {
 		return &PlayerReadOnly{inner: nil}
 	}
-	inner := *p
-	*p = nil
+	inner := p
 	return &PlayerReadOnly{
 		inner:   inner,
-		_Sa:     readonly.NewListFrom(&inner.Sa, data.NewSimpleDataReadOnly),
-		_Ma:     readonly.NewMapFrom(&inner.Ma, data.NewReferencedDataReadOnly),
-		_Da:     data.NewSimpleDataReadOnly(&inner.Da),
-		_Age:    readonly.NewPointer(&inner.Age),
-		_State2: readonly.NewPointer(&inner.State2),
-		_Data:   readonly.NewList(&inner.Data),
+		_Sa:     readonly.NewListFrom(inner.Sa, data.NewSimpleDataReadOnly),
+		_Ma:     readonly.NewMapFrom(inner.Ma, data.NewReferencedDataReadOnly),
+		_Da:     data.NewSimpleDataReadOnly(inner.Da),
+		_Age:    readonly.NewPointer(inner.Age),
+		_State2: readonly.NewPointer(inner.State2),
+		_Data:   readonly.NewList(inner.Data),
 	}
 }
 

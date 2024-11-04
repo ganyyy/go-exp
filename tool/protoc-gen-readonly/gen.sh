@@ -1,4 +1,4 @@
-#!/usr/env/bin bash
+#!/usr/bin/env bash
 protoc --experimental_allow_proto3_optional \
     --go_out=.. \
     --readonly_out=.. \

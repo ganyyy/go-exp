@@ -63,24 +63,24 @@ func InitFieldString(f *Field, readOnlyPkg string) string {
 	case KindSimple:
 		return ""
 	case KindPointer:
-		return fmt.Sprintf("%s: %sNewPointer(&inner.%s),",
+		return fmt.Sprintf("%s: %sNewPointer(inner.%s),",
 			f.InnerName, formatPkg(readOnlyPkg), f.OuterName)
 	case KindMessage:
-		return fmt.Sprintf("%s: %sNew%s(&inner.%s),",
+		return fmt.Sprintf("%s: %sNew%s(inner.%s),",
 			f.InnerName, formatPkg(f.Pkg), readOnlyType(f.OrgType), f.OuterName)
 	case KindList, KindMap:
 		typ := "NewList"
 		if f.Kind == KindMap {
 			typ = "NewMap"
 		}
-		return fmt.Sprintf("%s: %s%s(&inner.%s),",
+		return fmt.Sprintf("%s: %s%s(inner.%s),",
 			f.InnerName, formatPkg(readOnlyPkg), typ, f.OuterName)
 	case KindMessageList, KindMessageMap:
 		typ := "NewListFrom"
 		if f.Kind == KindMessageMap {
 			typ = "NewMapFrom"
 		}
-		return fmt.Sprintf("%s: %s%s(&inner.%s, %sNew%s),",
+		return fmt.Sprintf("%s: %s%s(inner.%s, %sNew%s),",
 			f.InnerName, formatPkg(readOnlyPkg), typ, f.OuterName, formatPkg(f.Pkg), readOnlyType(f.OrgType))
 	default:
 		panic("unknown kind")
@@ -294,12 +294,11 @@ func (m *Message) GenStruct(gen GenCfg) {
 }
 
 func (m *Message) GenNew(gen GenCfg) {
-	gen.P("func New", m.Name, "(p **", m.PkgName, ") ", pointerType(m.Name), " {")
-	gen.P("if p == nil || *p == nil {")
+	gen.P("func New", m.Name, "(p *", m.PkgName, ") ", pointerType(m.Name), " {")
+	gen.P("if p == nil {")
 	gen.P("return &", m.Name, "{inner: nil}")
 	gen.P("}")
-	gen.P("inner := *p")
-	gen.P("*p = nil")
+	gen.P("inner := p")
 	gen.P("return &", m.Name, "{")
 	gen.P("inner: inner,")
 	for _, field := range m.Fields {

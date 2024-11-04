@@ -13,16 +13,15 @@ type SimpleDataReadOnly struct {
 	_Attrs readonly.Map[string, string]
 }
 
-func NewSimpleDataReadOnly(p **SimpleData) *SimpleDataReadOnly {
-	if p == nil || *p == nil {
+func NewSimpleDataReadOnly(p *SimpleData) *SimpleDataReadOnly {
+	if p == nil {
 		return &SimpleDataReadOnly{inner: nil}
 	}
-	inner := *p
-	*p = nil
+	inner := p
 	return &SimpleDataReadOnly{
 		inner:  inner,
-		_Tags:  readonly.NewList(&inner.Tags),
-		_Attrs: readonly.NewMap(&inner.Attrs),
+		_Tags:  readonly.NewList(inner.Tags),
+		_Attrs: readonly.NewMap(inner.Attrs),
 	}
 }
 
@@ -60,16 +59,15 @@ type ReferencedDataReadOnly struct {
 	_SimpleMap readonly.Map[string, *SimpleDataReadOnly]
 }
 
-func NewReferencedDataReadOnly(p **ReferencedData) *ReferencedDataReadOnly {
-	if p == nil || *p == nil {
+func NewReferencedDataReadOnly(p *ReferencedData) *ReferencedDataReadOnly {
+	if p == nil {
 		return &ReferencedDataReadOnly{inner: nil}
 	}
-	inner := *p
-	*p = nil
+	inner := p
 	return &ReferencedDataReadOnly{
 		inner:      inner,
-		_Simples:   readonly.NewListFrom(&inner.Simples, NewSimpleDataReadOnly),
-		_SimpleMap: readonly.NewMapFrom(&inner.SimpleMap, NewSimpleDataReadOnly),
+		_Simples:   readonly.NewListFrom(inner.Simples, NewSimpleDataReadOnly),
+		_SimpleMap: readonly.NewMapFrom(inner.SimpleMap, NewSimpleDataReadOnly),
 	}
 }
 

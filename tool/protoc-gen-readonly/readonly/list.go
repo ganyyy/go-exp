@@ -5,38 +5,36 @@ import (
 	"sync"
 )
 
-func OnceList[T any](src *[]T) func() List[T] {
+func OnceList[T any](src []T) func() List[T] {
 	return sync.OnceValue(func() List[T] {
 		return NewList(src)
 	})
 }
 
-func NewList[T any, S ~[]T](p *S) List[T] {
-	if p == nil || len(*p) == 0 {
+func NewList[T any, S ~[]T](p S) List[T] {
+	if len(p) == 0 {
 		return List[T]{inner: nil}
 	}
-	inner := *p
-	*p = nil
+	inner := p
 	return List[T]{inner: inner}
 }
 
-func OnceListFrom[T any, RT any](src *[]T, to func(*T) RT) func() List[RT] {
+func OnceListFrom[T any, RT any](src []T, to func(T) RT) func() List[RT] {
 	return sync.OnceValue(func() List[RT] {
 		return NewListFrom(src, to)
 	})
 }
 
-func NewListFrom[T any, RT any, S ~[]T](p *S, to func(*T) RT) List[RT] {
-	if p == nil || len(*p) == 0 {
+func NewListFrom[T any, RT any, S ~[]T](p S, to func(T) RT) List[RT] {
+	if len(p) == 0 {
 		return NewList[RT, []RT](nil)
 	}
-	inner := *p
-	*p = nil
+	inner := p
 	var result = make([]RT, 0, len(inner))
 	for _, v := range inner {
-		result = append(result, to(&v))
+		result = append(result, to(v))
 	}
-	return NewList(&result)
+	return NewList(result)
 }
 
 type List[T any] struct {
