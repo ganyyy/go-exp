@@ -33,6 +33,7 @@ require (
 	github.com/antchfx/htmlquery v1.3.0 // indirect
 	github.com/antchfx/xmlquery v1.3.18 // indirect
 	github.com/antchfx/xpath v1.2.5 // indirect
+	github.com/arnodel/strftime v0.1.6 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -101,8 +102,8 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/aarzilli/golua v0.0.0-20210507130708-11106aa57765
-	github.com/arnodel/golua v0.0.0-20230215163904-e0b5347eaaa1
+	github.com/aarzilli/golua v0.0.0-20241031084612-1841fa0eb05c
+	github.com/arnodel/golua v0.0.0-20241103212102-38aca5ed4ddc
 	github.com/cloudwego/netpoll v0.3.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deathowl/go-metrics-prometheus v0.0.0-20221009205350-f2a1482ba35b
