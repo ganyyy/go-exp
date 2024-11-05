@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"runtime"
 
@@ -36,6 +37,8 @@ var MyFixAdd = runtime.FuncForPC(reflect.ValueOf(GenAdd2Fix(10)).Pointer()).Entr
 
 func GenAdd2Fix(a int) func(int) int {
 	return func(i int) int {
+		fix.GlobalData++
+		fmt.Println("in GenAdd2Fix:", a, i, fix.GlobalData)
 		return a
 	}
 }

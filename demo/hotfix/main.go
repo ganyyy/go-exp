@@ -11,6 +11,8 @@ import (
 	"ganyyy.com/go-exp/demo/hotfix/update"
 )
 
+var globalData = 10000
+
 //go:noinline
 func Min(src []int) int {
 	var ret = math.MaxInt32
@@ -42,6 +44,7 @@ func main() {
 		time.Sleep(time.Second)
 		data.SetA(idx)
 		idx++
+		fmt.Printf("globalData: %v\n", globalData)
 		fmt.Printf("main src:  %v, %+v, %v, %v\n",
 			Min(src), data, Sum3(GenAdd(idx), src), Sum3(GenAdd2(), src))
 	}

@@ -13,6 +13,9 @@ func Show(a, b, c, d, e, f, g int) {
 	println("in plugin 8978:", a, b, c, d, e, f, g, v)
 }
 
+//go:linkname GlobalData main.globalData
+var GlobalData int
+
 //go:noinline
 func Sum3(src []int) int {
 	var v = rand.Int()
