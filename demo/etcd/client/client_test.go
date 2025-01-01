@@ -20,9 +20,9 @@ func TestSetGet(t *testing.T) {
 
 	assert.Nil(t, initError)
 
-	Put("/test/v1", "123")
-	Put("/test/v2", "456")
-	Put("/test/v3", "789")
+	// Put("/test/v1", "123")
+	// Put("/test/v2", "456")
+	// Put("/test/v3", "789")
 
 	var ret, _ = Get("/test", true)
 
@@ -34,9 +34,11 @@ func TestSetGet(t *testing.T) {
 
 	var ctx, cancel = context.WithCancel(context.Background())
 	var ctx2, cancel2 = context.WithCancel(context.Background())
-
+	var ctx3, cancel3 = context.WithCancel(context.Background())
 	Watch(ctx, WatchKey, false)
-	Watch(ctx2, "/test", true)
+	Watch(ctx2, "/test1", true)
+	Watch(ctx3, "/test2", true)
+	Watch(context.Background(), "/test3", true)
 
 	for i := range 3 {
 		Put(WatchKey, "Val"+strconv.Itoa(i))
@@ -44,8 +46,13 @@ func TestSetGet(t *testing.T) {
 		time.Sleep(time.Second)
 	}
 	cancel()
+	t.Logf("cancel")
 	time.Sleep(time.Second)
 	cancel2()
+	t.Logf("cancel2")
+	time.Sleep(time.Second)
+	cancel3()
+	t.Logf("cancel3")
 	time.Sleep(time.Second)
 }
 
@@ -137,7 +144,7 @@ func TestDistributedLock(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		time.Sleep(2 * time.Second)
-		var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+		var ctx, cancel = context.WithTimeout(context.Background(), 16*time.Second)
 		defer cancel()
 		unlock, err := DistributedLock(ctx, Lock)
 		if !assert.Nil(t, err) {

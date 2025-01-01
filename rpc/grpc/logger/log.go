@@ -47,10 +47,17 @@ func NewHandle(reason string) stats.Handler {
 
 var putKey int
 var rangeKey int
+var deleteRangeKey int
 var watchKey int
+var txnKey int
 
 type PutCtx struct {
 	Key string
+}
+
+// String returns a string representation of the PutCtx.
+func (p *PutCtx) String() string {
+	return p.Key
 }
 
 type RangeCtx struct {
@@ -65,17 +72,27 @@ type WatchKey struct {
 }
 
 type WatchCtx struct {
-	Keys map[int64]WatchKey
+	Keys      map[int64]WatchKey
+	WaitWatch *WatchKey
+}
+
+type TxnCtx struct {
 }
 
 func (h *handle) TagRPC(ctx context.Context, info *stats.RPCTagInfo) context.Context {
 	// log.Printf("[%v] TagRPC info:%+v", h.tag, info)
-	if strings.HasSuffix(info.FullMethodName, "Put") {
+	if strings.HasSuffix(info.FullMethodName, "/Put") {
 		return context.WithValue(ctx, &putKey, &PutCtx{})
-	} else if strings.HasSuffix(info.FullMethodName, "Range") {
+	} else if strings.HasSuffix(info.FullMethodName, "/Range") {
 		return context.WithValue(ctx, &rangeKey, &RangeCtx{})
-	} else if strings.HasSuffix(info.FullMethodName, "Watch") {
+	} else if strings.HasSuffix(info.FullMethodName, "/Watch") {
 		return context.WithValue(ctx, &watchKey, &WatchCtx{Keys: make(map[int64]WatchKey)})
+	} else if strings.HasSuffix(info.FullMethodName, "/Txn") {
+		return context.WithValue(ctx, &txnKey, &TxnCtx{})
+	} else if strings.HasSuffix(info.FullMethodName, "/Compact") {
+
+	} else if strings.HasSuffix(info.FullMethodName, "/DeleteRange") {
+		return context.WithValue(ctx, &deleteRangeKey, &RangeCtx{})
 	}
 	// return ctx
 	return ctx
@@ -85,7 +102,9 @@ func (h *handle) HandleRPC(ctx context.Context, info stats.RPCStats) {
 
 	putCtx, isPut := ctx.Value(&putKey).(*PutCtx)
 	rangeCtx, isRange := ctx.Value(&rangeKey).(*RangeCtx)
-	// watchCtx, isWatch := ctx.Value(&watchKey).(*WatchCtx)
+	deleteRangeCtx, isDeleteRange := ctx.Value(&deleteRangeKey).(*RangeCtx)
+	watchCtx, isWatch := ctx.Value(&watchKey).(*WatchCtx)
+	_, isTxn := ctx.Value(&txnKey).(*TxnCtx)
 
 	header := func() string {
 		if isPut {
@@ -94,9 +113,15 @@ func (h *handle) HandleRPC(ctx context.Context, info stats.RPCStats) {
 		if isRange {
 			return "Get"
 		}
-		// if isWatch {
-		// 	return "Watch"
-		// }
+		if isWatch {
+			return "Watch"
+		}
+		if isDeleteRange {
+			return "DeleteRange"
+		}
+		if isTxn {
+			return "Txn"
+		}
 		return "Unknown"
 	}
 
@@ -112,28 +137,44 @@ func (h *handle) HandleRPC(ctx context.Context, info stats.RPCStats) {
 		} else if isPut {
 			putRequest := typ.Payload.(*etcdserverpb.PutRequest)
 			putCtx.Key = string(putRequest.Key)
-			// } else if isWatch {
-			// watchRequest := typ.Payload.(*etcdserverpb.WatchRequest)
-			// createRequest := watchRequest.GetCreateRequest()
-			// cancelRequest := watchRequest.GetCancelRequest()
-			// if createRequest != nil {
-			// 	var key WatchKey
-			// 	key.Key = string(createRequest.Key)
-			// 	key.IsPrefix = createRequest.RangeEnd != nil
-			// 	key.Revision = createRequest.StartRevision
-			// 	watchCtx.Keys[createRequest.WatchId] = key
-			// 	log.Printf("Watch  create request:%+v", createRequest)
-			// }
-			// if cancelRequest != nil {
-			// 	delete(watchCtx.Keys, cancelRequest.WatchId)
-			// 	log.Printf("Watch cancel request:%+v", cancelRequest)
-			// }
+		} else if isWatch {
+			watchRequest := typ.Payload.(*etcdserverpb.WatchRequest)
+			createRequest := watchRequest.GetCreateRequest()
+			if createRequest != nil {
+				var key WatchKey
+				key.Key = string(createRequest.Key)
+				key.IsPrefix = createRequest.RangeEnd != nil
+				key.Revision = createRequest.StartRevision
+				watchCtx.WaitWatch = &key
+				log.Printf("Watch create request:%+v", createRequest)
+			}
+		} else if isDeleteRange {
+			deleteRangeRequest := typ.Payload.(*etcdserverpb.DeleteRangeRequest)
+			deleteRangeCtx.Key = string(deleteRangeRequest.Key)
+			deleteRangeCtx.IsPrefix = deleteRangeRequest.RangeEnd != nil
+		} else if isTxn {
+			txnRequest := typ.Payload.(*etcdserverpb.TxnRequest)
+			log.Printf("Txn request:%+v", txnRequest.String())
 		}
 		// log.Printf("[%v]OUT, payload %T %+v", header(), typ.Payload, typ.Payload)
 	case *stats.InHeader:
 	case *stats.InTrailer:
 	case *stats.InPayload:
-		// log.Printf("[%v]IN, payload %T %+v", header(), typ.Payload, typ.Payload)
+		if isWatch {
+			watchResponse := typ.Payload.(*etcdserverpb.WatchResponse)
+			if watchResponse.GetCreated() && watchCtx.WaitWatch != nil {
+				waitWatch := *watchCtx.WaitWatch
+				watchCtx.WaitWatch = nil
+				watchCtx.Keys[watchResponse.WatchId] = waitWatch
+				log.Printf("Watch create response:%+v, watch key %+v", watchResponse, waitWatch)
+			} else if watchResponse.GetCanceled() {
+				watchKey, ok := watchCtx.Keys[watchResponse.WatchId]
+				if ok {
+					delete(watchCtx.Keys, watchResponse.WatchId)
+					log.Printf("Watch cancel response:%+v, watch key %+v", watchResponse, watchKey)
+				}
+			}
+		}
 	case *stats.End:
 		// log.Printf("[%v]END, isClient %v, cost %v", header(), typ.IsClient(), typ.EndTime.Sub(typ.BeginTime))
 		cost := typ.EndTime.Sub(typ.BeginTime)
@@ -143,8 +184,13 @@ func (h *handle) HandleRPC(ctx context.Context, info stats.RPCStats) {
 		} else if isPut {
 			log.Printf("[%v] key:%v cost:%v", header(),
 				putCtx.Key, cost)
-			// } else if isWatch {
-			// 	log.Printf("[%v] stop cost:%v", header(), cost)
+		} else if isWatch {
+			log.Printf("[%v] stop cost:%v", header(), cost)
+		} else if isDeleteRange {
+			log.Printf("[%v] key:%v, prefix:%v cost:%v", header(),
+				deleteRangeCtx.Key, deleteRangeCtx.IsPrefix, cost)
+		} else if isTxn {
+			log.Printf("[%v] cost:%v", header(), cost)
 		}
 	}
 
