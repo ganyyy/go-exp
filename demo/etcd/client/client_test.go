@@ -32,14 +32,21 @@ func TestSetGet(t *testing.T) {
 
 	const WatchKey = "/test/temporary"
 
-	Watch(WatchKey, false)
-	Watch("/test", true)
+	var ctx, cancel = context.WithCancel(context.Background())
+	var ctx2, cancel2 = context.WithCancel(context.Background())
 
-	for i := range Range(5) {
+	Watch(ctx, WatchKey, false)
+	Watch(ctx2, "/test", true)
+
+	for i := range 3 {
 		Put(WatchKey, "Val"+strconv.Itoa(i))
 		Put(WatchKey+"/last", "Val"+strconv.Itoa(i))
 		time.Sleep(time.Second)
 	}
+	cancel()
+	time.Sleep(time.Second)
+	cancel2()
+	time.Sleep(time.Second)
 }
 
 func Range(n int) []struct{} {

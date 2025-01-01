@@ -3,13 +3,14 @@ package client
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 
+	"ganyyy.com/go-exp/rpc/grpc/logger"
 	"go.etcd.io/etcd/api/v3/etcdserverpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/concurrency"
+	"google.golang.org/grpc"
 )
 
 type EtcdConfig struct {
@@ -36,6 +37,9 @@ func Init(config *EtcdConfig) error {
 			Endpoints: config.Endpoints,
 			Username:  config.Username,
 			Password:  config.Password,
+			DialOptions: []grpc.DialOption{
+				grpc.WithStatsHandler(logger.NewHandle("etcd")),
+			},
 		})
 		defaultClient.Root = config.Root
 	})
@@ -85,13 +89,13 @@ func Get(key string, prefix bool) ([]KV, error) {
 	return ret, nil
 }
 
-func Watch(key string, prefix bool) {
+func Watch(ctx context.Context, key string, prefix bool) {
 	var opts []clientv3.OpOption
 	if prefix {
 		opts = append(opts, clientv3.WithPrefix())
 	}
 	opts = append(opts, clientv3.WithPrevKV())
-	var watchChan = defaultClient.Watch(context.Background(), key, opts...)
+	var watchChan = defaultClient.Watch(ctx, key, opts...)
 	go func() {
 		for msg := range watchChan {
 			var sb strings.Builder
@@ -102,7 +106,7 @@ func Watch(key string, prefix bool) {
 				allEvents = append(allEvents, fmt.Sprintf("{Type:%v, Kv:%v, PreKv:%v}", e.Type.String(), e.Kv.String(), e.PrevKv.String()))
 			}
 			sb.WriteString(strings.Join(allEvents, ","))
-			log.Printf("watch result:%+v", sb.String())
+			// log.Printf("watch result:%+v", sb.String())
 		}
 	}()
 
