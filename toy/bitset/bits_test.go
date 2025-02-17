@@ -100,8 +100,7 @@ func TestRange(t *testing.T) {
 		bs.Add(Index(MaxEID - i*100 - 1))
 	}
 
-	bs.Range(func(idx Index) bool {
-		t.Logf("idx:%v", idx)
-		return true
-	})
+	for idx := range bs.Range() {
+		t.Logf("%v", idx)
+	}
 }

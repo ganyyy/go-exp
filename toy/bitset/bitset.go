@@ -1,6 +1,9 @@
 package bitset
 
-import "math/bits"
+import (
+	"iter"
+	"math/bits"
+)
 
 type layer []uint
 
@@ -139,66 +142,69 @@ func (b *BitSet) Clear() {
 	b.layer0 = nil
 }
 
-func (b *BitSet) Range(cb func(idx Index) bool) {
-	// 每一个level对应的掩码
-	var masks = [Layers]uint{3: b.layer3}
-	// 1
-	// 1--------1--------1
-	// 1--1--1--1--1--1--1--1--1
-	// 111111111111111111111111111
-	var prefix [Layers - 1]uint32
+func (b *BitSet) Range() iter.Seq[Index] {
+	return func(yield func(Index) bool) {
 
-	type State int32
+		// 每一个level对应的掩码
+		var masks = [Layers]uint{3: b.layer3}
+		// 1
+		// 1--------1--------1
+		// 1--1--1--1--1--1--1--1--1
+		// 111111111111111111111111111
+		var prefix [Layers - 1]uint32
 
-	const (
-		Empty State = iota
-		Continue
-		Value
-	)
+		type State int32
 
-	getPrefix := func(level uint) uint32 {
-		if level >= Layers-1 {
-			return 0
-		}
-		return prefix[level]
-	}
+		const (
+			Empty State = iota
+			Continue
+			Value
+		)
 
-	var idx Index
+		getPrefix := func(level uint) uint32 {
+			if level >= Layers-1 {
+				return 0
+			}
+			return prefix[level]
+		}
 
-	handleLevel := func(level uint) State {
-		mask := masks[level]
-		if mask == 0 {
-			return Empty
+		var idx Index
+
+		handleLevel := func(level uint) State {
+			mask := masks[level]
+			if mask == 0 {
+				return Empty
+			}
+			// 首个1出现的位置
+			firstBit := bits.TrailingZeros(mask)
+			// 清理该位
+			masks[level] &^= (1 << firstBit)
+			// 获取该位对应的值
+			idx = Index(getPrefix(level) | uint32(firstBit))
+			if level == 0 {
+				return Value
+			}
+			// 设置缓存
+			masks[level-1] = b.getFromLevel(level-1, uint(idx))
+			// 更新前缀. 类似于一种前缀树的概念
+			prefix[level-1] = uint32(idx) << Bits
+			return Continue
 		}
-		// 首个1出现的位置
-		firstBit := bits.TrailingZeros(mask)
-		// 清理该位
-		masks[level] &^= (1 << firstBit)
-		// 获取该位对应的值
-		idx = Index(getPrefix(level) | uint32(firstBit))
-		if level == 0 {
-			return Value
+	loop:
+		for level := uint(0); level < Layers; level++ {
+			state := handleLevel(level)
+			if state == Empty {
+				continue
+			}
+			if state == Continue {
+				goto loop
+			}
+			// Value
+			if yield(idx) {
+				goto loop
+			}
+			return
 		}
-		// 设置缓存
-		masks[level-1] = b.getFromLevel(level-1, uint(idx))
-		// 更新前缀. 类似于一种前缀树的概念
-		prefix[level-1] = uint32(idx) << Bits
-		return Continue
-	}
-loop:
-	for level := uint(0); level < Layers; level++ {
-		state := handleLevel(level)
-		if state == Empty {
-			continue
-		}
-		if state == Continue {
-			goto loop
-		}
-		// Value
-		if cb(idx) {
-			goto loop
-		}
-		return
 	}
 }
 

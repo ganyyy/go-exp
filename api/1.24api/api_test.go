@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"testing"
+	"testing/synctest"
 	"time"
 	"weak"
 )
@@ -32,4 +33,20 @@ func TestWeak(t *testing.T) {
 	if pv != nil {
 		panic("value should be nil")
 	}
+
+}
+
+func BenchmarkName(b *testing.B) {
+
+	for b.Loop() {
+
+	}
+}
+
+func TestSyncTest(t *testing.T) {
+	synctest.Run(func() {
+		fmt.Println("hello")
+		synctest.Wait()
+		fmt.Println("world")
+	})
 }
