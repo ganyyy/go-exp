@@ -2,9 +2,9 @@ package api
 
 import (
 	"fmt"
+	"math"
 	"runtime"
 	"testing"
-	"testing/synctest"
 	"time"
 	"weak"
 )
@@ -36,6 +36,28 @@ func TestWeak(t *testing.T) {
 
 }
 
+func TestMap2(t *testing.T) {
+	var m = make(map[float64]int)
+	m[math.NaN()] = 1
+	m[math.NaN()] = 2
+	m[math.NaN()] = 3
+	m[math.Inf(1)] = 2
+	m[math.Inf(-1)] = 3
+
+	delete(m, math.NaN())
+	delete(m, math.Inf(1))
+	delete(m, math.Inf(-1))
+
+	t.Logf("map: %v", m)
+
+	for k, v := range m {
+		t.Logf("k: %v, v: %v", k, v)
+		delete(m, k)
+	}
+
+	t.Logf("map: %v", m)
+}
+
 func BenchmarkName(b *testing.B) {
 
 	for b.Loop() {
@@ -43,10 +65,10 @@ func BenchmarkName(b *testing.B) {
 	}
 }
 
-func TestSyncTest(t *testing.T) {
-	synctest.Run(func() {
-		fmt.Println("hello")
-		synctest.Wait()
-		fmt.Println("world")
-	})
-}
+// func TestSyncTest(t *testing.T) {
+// 	synctest.Run(func() {
+// 		fmt.Println("hello")
+// 		synctest.Wait()
+// 		fmt.Println("world")
+// 	})
+// }
