@@ -10,9 +10,33 @@ import (
 )
 
 func TestMap(t *testing.T) {
-	var m = make(map[int]int)
+	var m = make(map[int]int, 8)
 	_ = m
 
+	for i := 1; i <= 8; i++ {
+		m[i] = i
+	}
+
+	for k, v := range m {
+		for i := 1; i <= 10; i++ {
+			m[k*100+i] = i
+		}
+		fmt.Println(k, v)
+	}
+	fmt.Println(len(m))
+}
+
+func TestMap2(t *testing.T) {
+	t.Run("NaNKey", func(t *testing.T) {
+		var m = make(map[float64]int, 8)
+		m[math.NaN()] = 1
+		m[math.NaN()] = 2
+		m[math.NaN()] = 3
+		fmt.Println(m)
+		for k, v := range m {
+			fmt.Println(k, v)
+		}
+	})
 }
 
 func TestWeak(t *testing.T) {

@@ -11,6 +11,8 @@ use (
 	./demo/nats/jetstream
 	./tool/protoc-gen-dirty-mark
 	./tool/protoc-gen-readonly
+	./vender/luajit-go
+	./vender/golua
 //./remote/nats.go
 //./work/bar
 //./work/foo
