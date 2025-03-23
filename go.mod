@@ -107,7 +107,8 @@ require (
 	github.com/cloudwego/netpoll v0.3.2
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deathowl/go-metrics-prometheus v0.0.0-20221009205350-f2a1482ba35b
-	github.com/getsentry/sentry-go v0.21.0
+	github.com/getsentry/sentry-go v0.31.1
+	github.com/getsentry/sentry-go/slog v0.31.1
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-kiss/monkey v0.0.0-20230110091714-dd9fefb2c016
 	github.com/gocolly/colly v1.2.0

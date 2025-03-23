@@ -60,7 +60,7 @@ func TestWeak(t *testing.T) {
 
 }
 
-func TestMap2(t *testing.T) {
+func TestMap3(t *testing.T) {
 	var m = make(map[float64]int)
 	m[math.NaN()] = 1
 	m[math.NaN()] = 2
