@@ -28,7 +28,7 @@ func main() {
 	if isProducer {
 		runFunc = common.RunProducer
 	} else {
-		runFunc = common.RunConsumer
+		runFunc = common.RunConsumer2
 	}
 
 	var wg sync.WaitGroup

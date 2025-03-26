@@ -3,7 +3,7 @@ package common
 import "context"
 
 var (
-	runnerIdxKey struct{}
+	runnerIdxKey = &struct{}{}
 )
 
 func WithRunnerIdx(ctx context.Context, idx int) context.Context {

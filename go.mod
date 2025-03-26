@@ -6,6 +6,7 @@ require (
 	ganyyy.com/go-exp/patch v0.0.0
 	github.com/Shopify/go-lua v0.0.0-20221004153744-91867de107cf
 	github.com/astaxie/beego v1.12.3
+	github.com/folays/luajit-go v0.0.0-20230915011731-1770391588c2
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.7.1
@@ -34,7 +35,6 @@ require (
 	github.com/antchfx/xmlquery v1.3.18 // indirect
 	github.com/antchfx/xpath v1.2.5 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
-	github.com/folays/luajit-go v0.0.0-20230915011731-1770391588c2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
