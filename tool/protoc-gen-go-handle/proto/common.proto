@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "protoc-gen-go-handle/protogen";
+
+
+message Empty {
+    // Empty message
+}
+
+// TODO 支持 metedata
+
+message NetReq {
+    string code = 1;
+    bytes req = 2;
+}
+
+message NetRsp {
+    bytes rsp = 1;
+    string err = 2;
+}

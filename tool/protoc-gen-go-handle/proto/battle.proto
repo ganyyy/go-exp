@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package battlex;
+
+option go_package = "protoc-gen-go-handle/protogen";
+
+import "common.proto";
+
+
+service BattleX {
+    rpc GetBattleInfo(GetBattleInfoReq) returns (GetBattleInfoRsp);
+}
+
+message Battle {
+    string battleId = 1;
+    repeated string playerIds = 2;
+}
+
+message GetBattleInfoReq {
+    string battleId = 1;
+}
+
+message GetBattleInfoRsp {
+    Battle battle = 1;
+}

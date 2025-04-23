@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package player_module;
+
+option go_package = "protoc-gen-go-handle/protogen";
+
+import "common.proto";
+
+service PlayerModule {
+    rpc NotifyInfo(NotifyInfoReq) returns (common.Empty);
+    rpc GetPlayerInfo(GetPlayerInfoReq) returns (GetPlayerInfoRsp);
+    rpc GetName(GetNameReq) returns (GetNameRsp);
+    rpc NotifyAddAge(NotifyAddAgeReq) returns (common.Empty);
+}
+
+message GetPlayerInfoReq {
+    string Acid = 1;
+}
+
+message GetPlayerInfoRsp {
+    string Name = 1;
+    string Acid = 4;
+}
+
+
+message NotifyInfoReq {
+    string Name = 1;
+    string Acid = 2;
+}
+
+message GetNameReq {
+    string Acid = 1;
+}
+message GetNameRsp {
+    string Name = 1;
+}
+
+message NotifyAddAgeReq {
+    string Acid = 1;
+    int32 Age = 2;
+}

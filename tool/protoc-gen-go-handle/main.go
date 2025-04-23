@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
+	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
@@ -13,16 +16,32 @@ var (
 )
 
 var (
-	showVersion = flag.Bool("version", false, "print version and exit")
-	prefix      = flag.String("prefix", "Logic", "logicCommand and logic ")
+	commonPkgPtr = flag.String(
+		commonPkgParam,
+		"protoc-gen-go-handle/common",
+		"common package name",
+	)
+	moduleBasePathPtr = flag.String(
+		moduleBasePathParam,
+		"module",
+		"module base path",
+	)
 )
 
-// protoc --go_out=. -I. --go-handle_out=. --go-handle_opt=prefix=Logic  proto/*.proto
+const (
+	commonPkgParam      = "common_pkg"
+	moduleBasePathParam = "module_base_path"
+)
+
+var (
+	commonPkgPath  string
+	moduleBasePath string
+)
 
 func main() {
-	flag.Parse()
-	if *showVersion {
-		fmt.Println("versio:", version)
+
+	if len(os.Args) == 2 && os.Args[1] == "--version" {
+		fmt.Println("version:", version)
 		return
 	}
 
@@ -30,12 +49,36 @@ func main() {
 		ParamFunc: flag.CommandLine.Set,
 	}.Run(func(gen *protogen.Plugin) error {
 		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
+
+		commonPkgPath = *commonPkgPtr
+		moduleBasePath = *moduleBasePathPtr
+
+		log.Println(commonPkgParam, ":", commonPkgPath)
+		log.Println(moduleBasePathParam, ":", moduleBasePath)
+
 		for _, f := range gen.Files {
 			if !f.Generate {
 				continue
 			}
-			generateFile(f)
+			generateFile(gen, f)
 		}
 		return nil
 	})
+}
+
+func parsePluginParameters(param string) map[string]string {
+	result := make(map[string]string)
+	if param == "" {
+		return result
+	}
+	for kv := range strings.SplitSeq(param, ",") {
+		parts := strings.SplitN(kv, "=", 2)
+		key := strings.TrimSpace(parts[0])
+		val := ""
+		if len(parts) > 1 {
+			val = strings.TrimSpace(parts[1])
+		}
+		result[key] = val
+	}
+	return result
 }
