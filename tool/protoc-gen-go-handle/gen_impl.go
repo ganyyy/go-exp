@@ -80,7 +80,9 @@ func (s *Service) GenFromAst(path string, out *protogen.GeneratedFile) {
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
 					Name: ast.NewIdent(implStruct),
-					Type: &ast.StructType{},
+					Type: &ast.StructType{
+						Fields: &ast.FieldList{},
+					},
 				},
 			},
 		})

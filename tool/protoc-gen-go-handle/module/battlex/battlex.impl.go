@@ -5,11 +5,6 @@ import (
 	protogen "protoc-gen-go-handle/protogen"
 )
 
-var (
-	_ = context.Background()
-	_ = (*protogen.Empty)(nil)
-)
-
 type BattleXImpl struct {
 }
 
