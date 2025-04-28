@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
@@ -64,21 +63,4 @@ func main() {
 		}
 		return nil
 	})
-}
-
-func parsePluginParameters(param string) map[string]string {
-	result := make(map[string]string)
-	if param == "" {
-		return result
-	}
-	for kv := range strings.SplitSeq(param, ",") {
-		parts := strings.SplitN(kv, "=", 2)
-		key := strings.TrimSpace(parts[0])
-		val := ""
-		if len(parts) > 1 {
-			val = strings.TrimSpace(parts[1])
-		}
-		result[key] = val
-	}
-	return result
 }

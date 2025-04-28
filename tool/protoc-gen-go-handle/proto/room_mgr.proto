@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package battlex;
+
+option go_package = "protoc-gen-go-handle/protogen";
+
+import "common.proto";
+
+
+
+
+service RoomMgr {
+    rpc CreateRoom(CreateRoomReq) returns (CreateRoomRsp);
+    rpc JoinRoom(JoinRoomReq) returns (JoinRoomRsp);
+    rpc LeaveRoom(LeaveRoomReq) returns (LeaveRoomRsp);
+    rpc NotifyBattleStart(NotifyBattleStartReq) returns (common.Empty);
+}
+
+message CreateRoomReq {
+    string roomId = 1;
+    string playerId = 2;
+}
+
+message CreateRoomRsp {
+    string roomId = 1;
+}
+
+message JoinRoomReq {
+    string roomId = 1;
+    string playerId = 2;
+}
+
+message JoinRoomRsp {
+    string roomId = 1;
+}
+
+message LeaveRoomReq {
+    string roomId = 1;
+    string playerId = 2;
+}
+
+message LeaveRoomRsp {
+    string roomId = 1;
+}
+
+message NotifyBattleStartReq {
+    string roomId = 1;
+    string playerId = 2;
+}

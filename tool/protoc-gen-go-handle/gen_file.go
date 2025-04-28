@@ -91,7 +91,7 @@ type Service struct {
 
 func (s *Service) OutputFile(gen *protogen.Plugin, suffix string) *protogen.GeneratedFile {
 	return gen.NewGeneratedFile(
-		filepath.Join(s.Package, s.Package+suffix+".go"),
+		filepath.Join(s.Package, s.Name+suffix+".go"),
 		protogen.GoImportPath(s.Package+"/"+s.Name), // 伪造一个包名
 	)
 }

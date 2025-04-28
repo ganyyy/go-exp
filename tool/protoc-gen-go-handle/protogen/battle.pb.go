@@ -165,7 +165,7 @@ var File_battle_proto protoreflect.FileDescriptor
 
 const file_battle_proto_rawDesc = "" +
 	"\n" +
-	"\fbattle.proto\x12\abattlex\x1a\fcommon.proto\"B\n" +
+	"\fbattle.proto\x12\abattlex\"B\n" +
 	"\x06Battle\x12\x1a\n" +
 	"\bbattleId\x18\x01 \x01(\tR\bbattleId\x12\x1c\n" +
 	"\tplayerIds\x18\x02 \x03(\tR\tplayerIds\".\n" +
@@ -210,7 +210,6 @@ func file_battle_proto_init() {
 	if File_battle_proto != nil {
 		return
 	}
-	file_common_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -15,10 +15,10 @@ import (
 )
 
 func (s *Service) GenImpl(gen *protogen.Plugin) {
-	path := filepath.Join(moduleBasePath, s.Package, s.Package+".impl.go")
+	path := filepath.Join(moduleBasePath, s.Package, s.Name+".impl.go")
 	out := s.OutputFile(gen, ".impl")
 
-	// 如果文件不存在
+	// 如果文件存在
 	if fileIsExist(path) {
 		// AST 增量
 		s.GenFromAst(path, out)
