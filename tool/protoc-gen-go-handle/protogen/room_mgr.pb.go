@@ -172,6 +172,7 @@ func (x *JoinRoomReq) GetPlayerId() string {
 type JoinRoomRsp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RoomId        string                 `protobuf:"bytes,1,opt,name=roomId,proto3" json:"roomId,omitempty"`
+	Test          string                 `protobuf:"bytes,2,opt,name=test,proto3" json:"test,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -209,6 +210,13 @@ func (*JoinRoomRsp) Descriptor() ([]byte, []int) {
 func (x *JoinRoomRsp) GetRoomId() string {
 	if x != nil {
 		return x.RoomId
+	}
+	return ""
+}
+
+func (x *JoinRoomRsp) GetTest() string {
+	if x != nil {
+		return x.Test
 	}
 	return ""
 }
@@ -373,9 +381,10 @@ const file_room_mgr_proto_rawDesc = "" +
 	"\x06roomId\x18\x01 \x01(\tR\x06roomId\"A\n" +
 	"\vJoinRoomReq\x12\x16\n" +
 	"\x06roomId\x18\x01 \x01(\tR\x06roomId\x12\x1a\n" +
-	"\bplayerId\x18\x02 \x01(\tR\bplayerId\"%\n" +
+	"\bplayerId\x18\x02 \x01(\tR\bplayerId\"9\n" +
 	"\vJoinRoomRsp\x12\x16\n" +
-	"\x06roomId\x18\x01 \x01(\tR\x06roomId\"B\n" +
+	"\x06roomId\x18\x01 \x01(\tR\x06roomId\x12\x12\n" +
+	"\x04test\x18\x02 \x01(\tR\x04test\"B\n" +
 	"\fLeaveRoomReq\x12\x16\n" +
 	"\x06roomId\x18\x01 \x01(\tR\x06roomId\x12\x1a\n" +
 	"\bplayerId\x18\x02 \x01(\tR\bplayerId\"&\n" +
