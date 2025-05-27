@@ -11,6 +11,7 @@ use (
 	./demo/nats/jetstream
 	./tool/protoc-gen-dirty-mark
 	./tool/protoc-gen-readonly
+	./tool/func-exportor
 //./remote/nats.go
 //./work/bar
 //./work/foo
