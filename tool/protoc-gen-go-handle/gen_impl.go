@@ -5,10 +5,12 @@ import (
 	"go/ast"
 	"go/format"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/tools/go/ast/astutil"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -90,6 +92,8 @@ func (s *Service) GenFromAst(path string, out *protogen.GeneratedFile) {
 
 	// 检测是否包含所有的rpc方法
 	allMethods := getMethodNamesForStruct(f, implStruct)
+	var newFuncDecls []*ast.FuncDecl
+
 	for _, rpc := range s.RPCs {
 		if allMethods[rpc.Name] {
 			continue // 这里就不进行签名校验了
@@ -138,16 +142,31 @@ func (s *Service) GenFromAst(path string, out *protogen.GeneratedFile) {
 				},
 			})
 		}
-		f.Decls = append(f.Decls, buildMethodFuncDecl(implStruct, rpc.Name, params, results, statements))
+		newFuncDecl := buildMethodFuncDecl(implStruct, rpc.Name, params, results, statements)
+		newFuncDecls = append(newFuncDecls, newFuncDecl)
+	}
+
+	// 如果有新方法需要添加，使用特殊的处理方式
+	if len(newFuncDecls) > 0 {
+		genMixedOutput(fset, f, newFuncDecls, out)
+		return
 	}
 
 	// 序列化并写入文件
 	var buf = bytes.NewBuffer(nil)
-	err = format.Node(buf, fset, f)
+
+	// 使用 printer.Fprint 而不是 format.Node，更好地保留注释
+	err = printer.Fprint(buf, fset, f)
+	if err != nil {
+		log.Panicf("print file %s error: %v", path, err)
+	}
+
+	// 再进行格式化
+	formatted, err := format.Source(buf.Bytes())
 	if err != nil {
 		log.Panicf("format file %s error: %v", path, err)
 	}
-	out.Write(buf.Bytes())
+	out.Write(formatted)
 }
 
 func fileIsExist(path string) bool {
@@ -224,7 +243,7 @@ func buildMethodFuncDecl(
 	results []*ast.Field,
 	bodyStmts []ast.Stmt,
 ) *ast.FuncDecl {
-	return &ast.FuncDecl{
+	funcDecl := &ast.FuncDecl{
 		Name: ast.NewIdent(methodName),
 		Recv: &ast.FieldList{
 			List: []*ast.Field{
@@ -239,12 +258,84 @@ func buildMethodFuncDecl(
 			Results: &ast.FieldList{List: results},
 		},
 		Body: &ast.BlockStmt{List: bodyStmts},
-		// Doc: &ast.CommentGroup{
-		// 	List: []*ast.Comment{
-		// 		{
-		// 			Text: "// " + methodName,
-		// 		},
-		// 	},
-		// },
 	}
+
+	// 更可靠的注释设置方法
+	comment := &ast.Comment{
+		Slash: token.NoPos,
+		Text:  "// " + methodName,
+	}
+	funcDecl.Doc = &ast.CommentGroup{
+		List: []*ast.Comment{comment},
+	}
+
+	return funcDecl
+}
+
+// genMixedOutput 处理增量更新时的特殊情况，通过文本拼接避免AST位置信息不一致导致的注释丢失
+func genMixedOutput(fset *token.FileSet, f *ast.File, newFuncDecls []*ast.FuncDecl, out *protogen.GeneratedFile) {
+	// 第一步：生成现有文件的格式化代码
+	var existingBuf = bytes.NewBuffer(nil)
+	err := printer.Fprint(existingBuf, fset, f)
+	if err != nil {
+		log.Panicf("print existing file error: %v", err)
+	}
+
+	formatted, err := format.Source(existingBuf.Bytes())
+	if err != nil {
+		log.Panicf("format existing file error: %v", err)
+	}
+	existingCode := string(formatted)
+
+	// 第二步：为每个新方法单独生成代码
+	var newMethodsCode strings.Builder
+
+	for _, funcDecl := range newFuncDecls {
+		// 创建临时文件AST，只包含这一个函数
+		tempFile := &ast.File{
+			Name:  ast.NewIdent("main"), // 这个不重要
+			Decls: []ast.Decl{funcDecl},
+		}
+
+		var tempBuf = bytes.NewBuffer(nil)
+		tempFset := token.NewFileSet()
+
+		err := printer.Fprint(tempBuf, tempFset, tempFile)
+		if err != nil {
+			log.Panicf("print new method error: %v", err)
+		}
+
+		// 提取函数声明部分（去掉package声明）
+		tempCode := tempBuf.String()
+		lines := strings.Split(tempCode, "\n")
+		var funcLines []string
+		inFunc := false
+
+		for _, line := range lines {
+			if strings.HasPrefix(strings.TrimSpace(line), "//") ||
+				strings.HasPrefix(strings.TrimSpace(line), "func") {
+				inFunc = true
+			}
+			if inFunc && strings.TrimSpace(line) != "" {
+				funcLines = append(funcLines, line)
+			}
+		}
+
+		if len(funcLines) > 0 {
+			newMethodsCode.WriteString("\n")
+			newMethodsCode.WriteString(strings.Join(funcLines, "\n"))
+			newMethodsCode.WriteString("\n")
+		}
+	}
+
+	// 第三步：拼接现有代码和新方法
+	finalCode := existingCode + newMethodsCode.String()
+
+	// 第四步：最终格式化
+	finalFormatted, err := format.Source([]byte(finalCode))
+	if err != nil {
+		log.Panicf("format final file error: %v", err)
+	}
+
+	out.Write(finalFormatted)
 }

@@ -13,6 +13,12 @@ var (
 type BattleXImpl struct {
 }
 
+// GetBattleInfo2
+func (s *BattleXImpl) GetBattleInfo2(ctx context.Context, req *protogen.GetBattleInfoReq, rsp *protogen.GetBattleInfoRsp) error {
+	return nil
+}
+
+// GetBattleInfo
 func (s *BattleXImpl) GetBattleInfo(ctx context.Context, req *protogen.GetBattleInfoReq, rsp *protogen.GetBattleInfoRsp) error {
 	return nil
 }

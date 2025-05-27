@@ -18,7 +18,8 @@ var (
 )
 
 const (
-	BattleXGetBattleInfo = "BattleX.GetBattleInfo"
+	BattleXGetBattleInfo  = "BattleX.GetBattleInfo"
+	BattleXGetBattleInfo2 = "BattleX.GetBattleInfo2"
 )
 
 type innerBattleX struct {
@@ -36,6 +37,9 @@ func (m *innerBattleX) HandleNetMsg(netReq *protogen.NetReq) (r *protogen.NetRsp
 	var isAsync bool
 	switch netReq.Code {
 	case BattleXGetBattleInfo:
+		req = new(protogen.GetBattleInfoReq)
+		resp = new(protogen.GetBattleInfoRsp)
+	case BattleXGetBattleInfo2:
 		req = new(protogen.GetBattleInfoReq)
 		resp = new(protogen.GetBattleInfoRsp)
 	default:
@@ -69,6 +73,10 @@ func (m *innerBattleX) HandleTask(task common.Task) {
 		req := task.Req.(*protogen.GetBattleInfoReq)
 		resp := task.Rsp.(*protogen.GetBattleInfoRsp)
 		task.Finish(m.impl.GetBattleInfo(task.Context, req, resp))
+	case BattleXGetBattleInfo2:
+		req := task.Req.(*protogen.GetBattleInfoReq)
+		resp := task.Rsp.(*protogen.GetBattleInfoRsp)
+		task.Finish(m.impl.GetBattleInfo2(task.Context, req, resp))
 	default:
 		task.Finish(fmt.Errorf("unknown task code: %v", task.Code))
 	}
@@ -80,6 +88,7 @@ func (m *BattleX) L() IBattleXClient {
 
 type IBattleXClient interface {
 	GetBattleInfo(*protogen.GetBattleInfoReq, ...common.ApplyOption) (*protogen.GetBattleInfoRsp, error)
+	GetBattleInfo2(*protogen.GetBattleInfoReq, ...common.ApplyOption) (*protogen.GetBattleInfoRsp, error)
 }
 
 type iBattleXClient struct {
@@ -95,6 +104,17 @@ func (c iBattleXClient) GetBattleInfo(in *protogen.GetBattleInfoReq, opts ...com
 	defer cancel()
 	out := new(protogen.GetBattleInfoRsp)
 	err := c.cc.Invoke(ctx, BattleXGetBattleInfo, in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c iBattleXClient) GetBattleInfo2(in *protogen.GetBattleInfoReq, opts ...common.ApplyOption) (*protogen.GetBattleInfoRsp, error) {
+	ctx, cancel := common.GenerateOptions(opts...).Context()
+	defer cancel()
+	out := new(protogen.GetBattleInfoRsp)
+	err := c.cc.Invoke(ctx, BattleXGetBattleInfo2, in, out)
 	if err != nil {
 		return nil, err
 	}

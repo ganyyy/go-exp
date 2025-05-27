@@ -172,9 +172,10 @@ const file_battle_proto_rawDesc = "" +
 	"\x10GetBattleInfoReq\x12\x1a\n" +
 	"\bbattleId\x18\x01 \x01(\tR\bbattleId\";\n" +
 	"\x10GetBattleInfoRsp\x12'\n" +
-	"\x06battle\x18\x01 \x01(\v2\x0f.battlex.BattleR\x06battle2P\n" +
+	"\x06battle\x18\x01 \x01(\v2\x0f.battlex.BattleR\x06battle2\x98\x01\n" +
 	"\aBattleX\x12E\n" +
-	"\rGetBattleInfo\x12\x19.battlex.GetBattleInfoReq\x1a\x19.battlex.GetBattleInfoRspB\x1fZ\x1dprotoc-gen-go-handle/protogenb\x06proto3"
+	"\rGetBattleInfo\x12\x19.battlex.GetBattleInfoReq\x1a\x19.battlex.GetBattleInfoRsp\x12F\n" +
+	"\x0eGetBattleInfo2\x12\x19.battlex.GetBattleInfoReq\x1a\x19.battlex.GetBattleInfoRspB\x1fZ\x1dprotoc-gen-go-handle/protogenb\x06proto3"
 
 var (
 	file_battle_proto_rawDescOnce sync.Once
@@ -197,9 +198,11 @@ var file_battle_proto_goTypes = []any{
 var file_battle_proto_depIdxs = []int32{
 	0, // 0: battlex.GetBattleInfoRsp.battle:type_name -> battlex.Battle
 	1, // 1: battlex.BattleX.GetBattleInfo:input_type -> battlex.GetBattleInfoReq
-	2, // 2: battlex.BattleX.GetBattleInfo:output_type -> battlex.GetBattleInfoRsp
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
+	1, // 2: battlex.BattleX.GetBattleInfo2:input_type -> battlex.GetBattleInfoReq
+	2, // 3: battlex.BattleX.GetBattleInfo:output_type -> battlex.GetBattleInfoRsp
+	2, // 4: battlex.BattleX.GetBattleInfo2:output_type -> battlex.GetBattleInfoRsp
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
