@@ -32,11 +32,147 @@ type ExportedSymbol struct {
 	Signature    string // 符号的完整签名
 	VarSignature string // 函数的变量形式签名（仅用于函数）
 	Doc          string // 文档注释
+	IsGeneric    bool   // 是否包含泛型
+	TypeParams   string // 类型参数列表（如果是泛型）
 }
 
 // isExported 检查标识符是否为导出的（首字母大写）
 func isExported(name string) bool {
 	return name != "" && name[0] >= 'A' && name[0] <= 'Z'
+}
+
+// hasGenericType 检查类型表达式是否包含泛型
+func hasGenericType(expr ast.Expr) bool {
+	if expr == nil {
+		return false
+	}
+
+	switch e := expr.(type) {
+	case *ast.IndexExpr:
+		// 类型实例化，如 List[int]
+		return true
+	case *ast.IndexListExpr:
+		// 多个类型参数的实例化，如 Map[K, V]
+		return true
+	case *ast.Ident:
+		// 基本标识符，检查是否为类型参数
+		// 注意：这里无法直接判断是否为类型参数，需要上下文
+		return false
+	case *ast.StarExpr:
+		// 指针类型
+		return hasGenericType(e.X)
+	case *ast.ArrayType:
+		// 数组类型
+		return hasGenericType(e.Len) || hasGenericType(e.Elt)
+	case *ast.SliceExpr:
+		// 切片表达式
+		return hasGenericType(e.X)
+	case *ast.MapType:
+		// Map类型
+		return hasGenericType(e.Key) || hasGenericType(e.Value)
+	case *ast.ChanType:
+		// 通道类型
+		return hasGenericType(e.Value)
+	case *ast.StructType:
+		// 结构体类型
+		if e.Fields != nil {
+			for _, field := range e.Fields.List {
+				if hasGenericType(field.Type) {
+					return true
+				}
+			}
+		}
+		return false
+	case *ast.InterfaceType:
+		// 接口类型
+		if e.Methods != nil {
+			for _, method := range e.Methods.List {
+				if hasGenericType(method.Type) {
+					return true
+				}
+			}
+		}
+		return false
+	case *ast.FuncType:
+		// 函数类型
+		// 检查类型参数列表
+		if e.TypeParams != nil && len(e.TypeParams.List) > 0 {
+			return true
+		}
+		// 检查参数和返回值
+		if e.Params != nil {
+			for _, param := range e.Params.List {
+				if hasGenericType(param.Type) {
+					return true
+				}
+			}
+		}
+		if e.Results != nil {
+			for _, result := range e.Results.List {
+				if hasGenericType(result.Type) {
+					return true
+				}
+			}
+		}
+		return false
+	case *ast.SelectorExpr:
+		// 选择器表达式
+		return hasGenericType(e.X)
+	case *ast.ParenExpr:
+		// 括号表达式
+		return hasGenericType(e.X)
+	default:
+		return false
+	}
+}
+
+// extractTypeParams 提取类型参数列表的字符串表示
+func extractTypeParams(fset *token.FileSet, typeParams *ast.FieldList) string {
+	if typeParams == nil || len(typeParams.List) == 0 {
+		return ""
+	}
+
+	var result strings.Builder
+	result.WriteString("[")
+
+	for i, field := range typeParams.List {
+		if i > 0 {
+			result.WriteString(", ")
+		}
+
+		// 添加参数名称
+		if len(field.Names) > 0 {
+			for j, name := range field.Names {
+				if j > 0 {
+					result.WriteString(", ")
+				}
+				result.WriteString(name.Name)
+			}
+			result.WriteString(" ")
+		}
+
+		// 添加类型约束
+		if field.Type != nil {
+			typeStr := typeToString(fset, field.Type)
+			result.WriteString(typeStr)
+		}
+	}
+
+	result.WriteString("]")
+	return result.String()
+}
+
+// hasGenericInFieldList 检查字段列表是否包含泛型
+func hasGenericInFieldList(fields *ast.FieldList) bool {
+	if fields == nil {
+		return false
+	}
+	for _, field := range fields.List {
+		if hasGenericType(field.Type) {
+			return true
+		}
+	}
+	return false
 }
 
 // extractDocComment 提取文档注释
@@ -72,10 +208,37 @@ func extractExportedSymbols(fileSet *token.FileSet, file *ast.File) []ExportedSy
 		case *ast.FuncDecl:
 			// 函数声明
 			if node.Name != nil && isExported(node.Name.Name) {
+				if node.Recv != nil && len(node.Recv.List) > 0 {
+					// 不支持方法接收者的导出
+					// 目前只处理普通函数
+					log.Println("跳过方法接收者的导出:", typeToString(fileSet, node.Recv.List[0].Type), node.Name.Name)
+					return true
+				}
 				pos := fileSet.Position(node.Pos())
 				signature := buildFunctionSignature(fileSet, node)
 				varSignature := buildFunctionVarSignature(fileSet, node)
 				doc := extractDocComment(node.Doc)
+
+				// 检测泛型：函数类型参数、参数中的泛型类型、返回值中的泛型类型
+				isGeneric := false
+				var typeParams string
+
+				// 检查函数类型参数列表
+				if node.Type.TypeParams != nil && len(node.Type.TypeParams.List) > 0 {
+					isGeneric = true
+					typeParams = extractTypeParams(fileSet, node.Type.TypeParams)
+				}
+
+				// 检查参数中的泛型
+				if !isGeneric && hasGenericInFieldList(node.Type.Params) {
+					isGeneric = true
+				}
+
+				// 检查返回值中的泛型
+				if !isGeneric && hasGenericInFieldList(node.Type.Results) {
+					isGeneric = true
+				}
+
 				symbols = append(symbols, ExportedSymbol{
 					Name:         node.Name.Name,
 					Type:         "function",
@@ -83,6 +246,8 @@ func extractExportedSymbols(fileSet *token.FileSet, file *ast.File) []ExportedSy
 					Signature:    signature,
 					VarSignature: varSignature,
 					Doc:          doc,
+					IsGeneric:    isGeneric,
+					TypeParams:   typeParams,
 				})
 			}
 
@@ -108,7 +273,8 @@ func extractExportedSymbols(fileSet *token.FileSet, file *ast.File) []ExportedSy
 									signature += " " + typeToString(fileSet, s.Type)
 								} else if len(s.Values) > i && s.Values[i] != nil {
 									// 如果没有显式类型，尝试从值推断
-									signature += " " + typeToString(fileSet, s.Type)
+									log.Printf("警告: %s:%d:%d 中的变量 %s 没有显式类型", pos.Filename, pos.Line, pos.Column, name.Name)
+									continue
 								}
 							} else {
 								signature = "const " + name.Name
@@ -126,12 +292,25 @@ func extractExportedSymbols(fileSet *token.FileSet, file *ast.File) []ExportedSy
 								doc = extractDocComment(node.Doc)
 							}
 
+							// 检测泛型
+							isGeneric := false
+							if s.Type != nil {
+								isGeneric = hasGenericType(s.Type)
+							}
+							// 对于常量，也检查值表达式中的泛型
+							if !isGeneric && symbolType == "constant" && len(s.Values) > i && s.Values[i] != nil {
+								// 值表达式中可能包含泛型实例化
+								isGeneric = hasGenericType(s.Values[i])
+							}
+
 							symbols = append(symbols, ExportedSymbol{
-								Name:      name.Name,
-								Type:      symbolType,
-								Position:  fmt.Sprintf("%s:%d:%d", pos.Filename, pos.Line, pos.Column),
-								Signature: signature,
-								Doc:       doc,
+								Name:       name.Name,
+								Type:       symbolType,
+								Position:   fmt.Sprintf("%s:%d:%d", pos.Filename, pos.Line, pos.Column),
+								Signature:  signature,
+								Doc:        doc,
+								IsGeneric:  isGeneric,
+								TypeParams: "", // 变量和常量没有类型参数列表
 							})
 						}
 					}
@@ -140,7 +319,25 @@ func extractExportedSymbols(fileSet *token.FileSet, file *ast.File) []ExportedSy
 					// 类型声明
 					if isExported(s.Name.Name) {
 						pos := fileSet.Position(s.Pos())
-						signature := "type " + s.Name.Name + " " + typeToString(fileSet, s.Type)
+						signature := "type " + s.Name.Name
+
+						// 检测泛型和类型参数
+						isGeneric := false
+						var typeParams string
+
+						// 检查类型参数列表
+						if s.TypeParams != nil && len(s.TypeParams.List) > 0 {
+							isGeneric = true
+							typeParams = extractTypeParams(fileSet, s.TypeParams)
+							signature += typeParams
+						}
+
+						signature += " " + typeToString(fileSet, s.Type)
+
+						// 检查类型定义中的泛型
+						if !isGeneric && hasGenericType(s.Type) {
+							isGeneric = true
+						}
 
 						// 提取文档注释
 						doc := extractDocComment(s.Doc)
@@ -149,11 +346,13 @@ func extractExportedSymbols(fileSet *token.FileSet, file *ast.File) []ExportedSy
 						}
 
 						symbols = append(symbols, ExportedSymbol{
-							Name:      s.Name.Name,
-							Type:      "type",
-							Position:  fmt.Sprintf("%s:%d:%d", pos.Filename, pos.Line, pos.Column),
-							Signature: signature,
-							Doc:       doc,
+							Name:       s.Name.Name,
+							Type:       "type",
+							Position:   fmt.Sprintf("%s:%d:%d", pos.Filename, pos.Line, pos.Column),
+							Signature:  signature,
+							Doc:        doc,
+							IsGeneric:  isGeneric,
+							TypeParams: typeParams,
 						})
 					}
 				}
@@ -232,12 +431,10 @@ func buildFunctionSignature(fset *token.FileSet, funcDecl *ast.FuncDecl) string 
 func buildFunctionVarSignature(fset *token.FileSet, funcDecl *ast.FuncDecl) string {
 	var sig strings.Builder
 
-	sig.WriteString("var ")
-	sig.WriteString(funcDecl.Name.Name)
-	sig.WriteString(" func")
-
+	var recvType string
 	// 如果有接收者，将其作为第一个参数
 	if funcDecl.Recv != nil && len(funcDecl.Recv.List) > 0 {
+
 		sig.WriteString("(")
 
 		// 接收者类型和名称
@@ -246,7 +443,7 @@ func buildFunctionVarSignature(fset *token.FileSet, funcDecl *ast.FuncDecl) stri
 		if len(recv.Names) > 0 && recv.Names[0] != nil {
 			recvName = recv.Names[0].Name
 		}
-		recvType := typeToString(fset, recv.Type)
+		recvType = typeToString(fset, recv.Type)
 		sig.WriteString(recvName + " " + recvType)
 
 		// 如果还有其他参数，添加逗号和参数
@@ -272,7 +469,22 @@ func buildFunctionVarSignature(fset *token.FileSet, funcDecl *ast.FuncDecl) stri
 		buildReturnTypeList(&sig, fset, funcDecl.Type.Results.List)
 	}
 
-	return sig.String()
+	ret := sig.String()
+	sig.Reset()
+	fnName := funcDecl.Name.Name
+	if recvType != "" {
+		if recvType[0] == '*' {
+			// 如果接收者是指针类型，去掉星号
+			recvType = recvType[1:]
+		}
+		// 如果有接收者，使用接收者名称作为函数变量名
+		fnName = recvType + "_" + fnName
+	}
+
+	sig.WriteString("var ")
+	sig.WriteString(fnName)
+	sig.WriteString(" func")
+	return sig.String() + ret
 }
 
 // buildParameterList 构建参数列表
@@ -373,6 +585,18 @@ func generatePackageOverview(filename string, symbols []ExportedSymbol) {
 	fmt.Printf("📊 Summary\n")
 	fmt.Printf("----------\n")
 	fmt.Printf("Total exported symbols: %d\n", len(symbols))
+
+	// 统计泛型符号
+	genericCount := 0
+	for _, symbol := range symbols {
+		if symbol.IsGeneric {
+			genericCount++
+		}
+	}
+	if genericCount > 0 {
+		fmt.Printf("Generic symbols: %d\n", genericCount)
+	}
+
 	for symbolType, symbolList := range typeGroups {
 		capitalizedType := strings.ToUpper(symbolType[:1]) + symbolType[1:] + "s"
 		fmt.Printf("  %s: %d\n", capitalizedType, len(symbolList))
@@ -397,6 +621,15 @@ func generatePackageOverview(filename string, symbols []ExportedSymbol) {
 
 			for _, symbol := range symbolList {
 				fmt.Printf("  • %s", symbol.Name)
+
+				// 添加泛型标识
+				if symbol.IsGeneric {
+					fmt.Printf(" 🔷")
+					if symbol.TypeParams != "" {
+						fmt.Printf("%s", symbol.TypeParams)
+					}
+				}
+
 				if symbol.Doc != "" {
 					// 提取文档的第一行作为简短描述
 					lines := strings.Split(strings.TrimSpace(symbol.Doc), "\n")
@@ -445,6 +678,7 @@ func generateHeaderFile(sourceFile string, symbols []ExportedSymbol, outputFile 
 	// 导入声明
 	if len(file.Imports) > 0 {
 		content.WriteString("import (\n")
+		content.WriteString("\t\"plugin\"\n")
 		for _, imp := range file.Imports {
 			content.WriteString("\t")
 			if imp.Name != nil {
@@ -454,11 +688,17 @@ func generateHeaderFile(sourceFile string, symbols []ExportedSymbol, outputFile 
 			content.WriteString("\n")
 		}
 		content.WriteString(")\n\n")
+	} else {
+		content.WriteString("import \"plugin\"\n\n")
 	}
 
 	// 按类型分组符号
 	typeGroups := make(map[string][]ExportedSymbol)
 	for _, symbol := range symbols {
+		if symbol.IsGeneric {
+			log.Println("警告: 符号", symbol.Name, "包含泛型，跳过")
+			continue // 跳过泛型符号
+		}
 		typeGroups[symbol.Type] = append(typeGroups[symbol.Type], symbol)
 	}
 
@@ -508,8 +748,22 @@ func generateHeaderFile(sourceFile string, symbols []ExportedSymbol, outputFile 
 		}
 	}
 
+	// 生成绑定函数
+	content.WriteString("\nfunc initSymbol(p *plugin.Plugin) {\n")
+	for _, symbol := range typeGroups["variable"] {
+		content.WriteString(fmt.Sprintf("\tmastBind(p, &%s, \"%s\")\n", symbol.Name, symbol.Name))
+	}
+	for _, symbol := range typeGroups["function"] {
+		content.WriteString(fmt.Sprintf("\tmastBind(p, &%s, \"%s\")\n", symbol.Name, symbol.Name))
+	}
+	content.WriteString("}\n")
+
+	ret, err := format.Source([]byte(content.String()))
+	if err != nil {
+		return fmt.Errorf("格式化代码失败: %v", err)
+	}
 	// 写入文件
-	return os.WriteFile(outputFile, []byte(content.String()), 0644)
+	return os.WriteFile(outputFile, ret, 0644)
 }
 
 func main() {
@@ -634,10 +888,32 @@ func main() {
 		// 统计信息输出
 		fmt.Printf("File: %s\n", filename)
 		fmt.Printf("Total exported symbols: %d\n", len(symbols))
+
+		// 统计泛型符号
+		genericCount := 0
+		for _, symbol := range symbols {
+			if symbol.IsGeneric {
+				genericCount++
+			}
+		}
+		if genericCount > 0 {
+			fmt.Printf("Generic symbols: %d\n", genericCount)
+		}
+
 		for symbolType, symbolList := range typeGroups {
 			// 首字母大写
 			capitalizedType := strings.ToUpper(symbolType[:1]) + symbolType[1:]
-			fmt.Printf("  %s: %d\n", capitalizedType, len(symbolList))
+			genericCountForType := 0
+			for _, symbol := range symbolList {
+				if symbol.IsGeneric {
+					genericCountForType++
+				}
+			}
+			if genericCountForType > 0 {
+				fmt.Printf("  %s: %d (generic: %d)\n", capitalizedType, len(symbolList), genericCountForType)
+			} else {
+				fmt.Printf("  %s: %d\n", capitalizedType, len(symbolList))
+			}
 		}
 		return
 	}
@@ -660,7 +936,17 @@ func main() {
 		capitalizedType := strings.ToUpper(symbolType[:1]) + symbolType[1:]
 		fmt.Printf("%s (%d个):\n", capitalizedType, len(symbolList))
 		for _, symbol := range symbolList {
-			fmt.Printf("  - %s (%s)\n", symbol.Name, symbol.Position)
+			fmt.Printf("  - %s", symbol.Name)
+
+			// 添加泛型标识
+			if symbol.IsGeneric {
+				fmt.Printf(" 🔷")
+				if symbol.TypeParams != "" {
+					fmt.Printf("%s", symbol.TypeParams)
+				}
+			}
+
+			fmt.Printf(" (%s)\n", symbol.Position)
 		}
 		fmt.Println()
 	}
