@@ -12,6 +12,7 @@ use (
 	./tool/protoc-gen-dirty-mark
 	./tool/protoc-gen-readonly
 	./tool/func-exportor
+	./tool/func-garble
 //./remote/nats.go
 //./work/bar
 //./work/foo
