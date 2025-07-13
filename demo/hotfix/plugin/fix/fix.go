@@ -20,7 +20,7 @@ var GlobalData int
 func Sum3(src []int) int {
 	var v = rand.Int()
 	println("lissss 10089:", v)
-	return 0
+	return v
 }
 
 type MyData struct {

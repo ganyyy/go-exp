@@ -58,7 +58,8 @@ func Hello() {
 		if fn, ok := c.Node().(*dst.FuncDecl); ok && fn.Name.Name == "Hello" {
 			newList := []dst.Stmt{}
 			for _, stmt := range snippet {
-				newList = append(newList, dst.Clone(stmt).(dst.Stmt))
+				stmt = dst.Clone(stmt).(dst.Stmt)
+				newList = append(newList, stmt)
 			}
 			fn.Body.List = append(newList, fn.Body.List...)
 		}
