@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bytes"
-	"crypto/rc4"
-	"debug/elf"
 	"flag"
 	"fmt"
 	"os"
-	"strings"
+
+	"ganyyy.com/go-exp/demo/hotfix/enctext/sym"
 )
 
 var Key = []byte("123456")
@@ -28,59 +26,14 @@ func main() {
 		panic(err)
 	}
 
-	f, err := elf.NewFile(bytes.NewReader(data))
+	data, encFunc, err := sym.EncText(data, sym.GenRC4Enc(data, Key), prefix)
 	if err != nil {
 		panic(err)
 	}
 
-	var sec *elf.Section
-	var idx int
-	for i, s := range f.Sections {
-		if s.Name == ".text" {
-			sec = s
-			idx = i
-			break
-		}
-	}
-	if sec == nil {
-		panic("no .text section found")
-	}
-	fmt.Println("Found .text section at index", idx, "with address", sec.Addr, "and size", sec.Size, "align", sec.Addralign, "offset", sec.Offset)
-
-	syms, err := f.Symbols()
-	if err != nil {
-		panic(err)
-	}
-
-	var cipher, _ = rc4.NewCipher(Key)
-
-	var encFunc []byte
-
-	for _, sym := range syms {
-		if elf.ST_TYPE(sym.Info) != elf.STT_FUNC || int(sym.Section) != idx {
-			continue
-		}
-
-		if !strings.HasPrefix(sym.Name, prefix) {
-			continue
-		}
-
-		if sym.Value < sec.Addr || sym.Value+sym.Size > sec.Addr+sec.Size {
-			continue
-		}
-		if sym.Size == 0 {
-			continue
-		}
-		off := sym.Value - sec.Addr + sec.Offset
-		if off+sym.Size > uint64(len(data)) {
-			continue
-		}
-		fmt.Println("Symbol:", sym.Name, "Value:", sym.Value, "Size:", sym.Size, "Offset", off)
-		enc := make([]byte, sym.Size)
-		cipher.XORKeyStream(enc, data[off:off+sym.Size])
-		copy(data[off:off+sym.Size], enc)
-
-		encFunc = append(encFunc, fmt.Sprintf("%d:%d\n", off, sym.Size)...)
+	if len(encFunc) == 0 {
+		fmt.Println("No functions found to encrypt with prefix:", prefix)
+		return
 	}
 
 	if err := os.WriteFile(input, data, 0644); err != nil {

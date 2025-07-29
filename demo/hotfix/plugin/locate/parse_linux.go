@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 type Perms uint8
@@ -93,11 +94,11 @@ func (m *PluginMapping) Size() uint64 {
 	return m.End - m.Start
 }
 
-func LocatePlugin(selfPath string) ([]PluginMapping, error) {
+func TryDecText(encFuncs []byte, selfPath string) error {
 
 	file, err := os.Open("/proc/self/maps")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer file.Close()
 
@@ -137,6 +138,51 @@ func LocatePlugin(selfPath string) ([]PluginMapping, error) {
 			Path:   path,
 		})
 	}
+	for _, mapping := range mappings {
+		fmt.Println("Found mapping:", mapping.String())
+	}
 
-	return mappings, scanner.Err()
+	for offset, size := range encFuncIter(encFuncs) {
+
+		for _, mapping := range mappings {
+			if offset < mapping.Offset {
+				continue
+			}
+			if offset >= mapping.Offset+mapping.Size() {
+				continue
+			}
+			off := offset - mapping.Offset + mapping.Start
+			if off+size > mapping.End {
+				continue
+			}
+			fmt.Printf("Decrypting function at offset %#x, size %#x\n", off, size)
+
+			ciphertext := RawMemoryAccess(uintptr(off), int(size))
+			copyToLocation(uintptr(off), decText(ciphertext))
+		}
+	}
+	return nil
+}
+
+func copyToLocation(location uintptr, data []byte) {
+	f := RawMemoryAccess(location, len(data))
+
+	mprotectCrossPage(location, len(data), syscall.PROT_READ|syscall.PROT_WRITE)
+	copy(f, data[:])
+	mprotectCrossPage(location, len(data), syscall.PROT_READ|syscall.PROT_EXEC)
+}
+
+func pageStart(ptr uintptr) uintptr {
+	return ptr &^ (uintptr(syscall.Getpagesize() - 1))
+}
+
+func mprotectCrossPage(addr uintptr, length int, prot int) {
+	pageSize := syscall.Getpagesize()
+	for p := pageStart(addr); p < addr+uintptr(length); p += uintptr(pageSize) {
+		page := RawMemoryAccess(p, pageSize)
+		err := syscall.Mprotect(page, prot)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

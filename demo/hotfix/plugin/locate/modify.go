@@ -3,33 +3,25 @@ package locate
 import (
 	"crypto/rc4"
 	"fmt"
+	"iter"
 	"os"
 	"strings"
-	"syscall"
+	"sync"
 	"unsafe"
 )
 
-func CopyToLocation(location uintptr, data []byte) {
-	f := RawMemoryAccess(location, len(data))
-
-	mprotectCrossPage(location, len(data), syscall.PROT_READ|syscall.PROT_WRITE)
-	copy(f, data[:])
-	mprotectCrossPage(location, len(data), syscall.PROT_READ|syscall.PROT_EXEC)
-}
-
-func pageStart(ptr uintptr) uintptr {
-	return ptr &^ (uintptr(syscall.Getpagesize() - 1))
-}
-
-func mprotectCrossPage(addr uintptr, length int, prot int) {
-	pageSize := syscall.Getpagesize()
-	for p := pageStart(addr); p < addr+uintptr(length); p += uintptr(pageSize) {
-		page := RawMemoryAccess(p, pageSize)
-		err := syscall.Mprotect(page, prot)
-		if err != nil {
-			panic(err)
-		}
+var cipher = sync.OnceValue(func() *rc4.Cipher {
+	c, err := rc4.NewCipher([]byte("123456"))
+	if err != nil {
+		panic(fmt.Sprintf("failed to create RC4 cipher: %v", err))
 	}
+	return c
+})
+
+func decText(data []byte) []byte {
+	var ret = make([]byte, len(data))
+	cipher().XORKeyStream(ret, data)
+	return ret
 }
 
 func RawMemoryAccess(p uintptr, length int) []byte {
@@ -53,44 +45,25 @@ func DecFunc(selfPath string) error {
 		return nil
 	}
 
-	mappings, err := LocatePlugin(selfPath)
-	if err != nil {
-		return err
-	}
-	for _, mapping := range mappings {
-		fmt.Println("Found mapping:", mapping.String())
-	}
+	return TryDecText(encFuncs, selfPath)
+}
 
-	var cipher, _ = rc4.NewCipher(Key)
-
-	_ = cipher
-
-	for encFunc := range strings.SplitSeq(string(encFuncs), "\n") {
-		// offset:size
-		var offset uint64
-		var size uint64
-		if _, err := fmt.Sscanf(encFunc, "%d:%d", &offset, &size); err != nil {
-			continue
-		}
-
-		for _, mapping := range mappings {
-			if offset < mapping.Offset {
+func encFuncIter(encFuncs []byte) iter.Seq2[uint64, uint64] {
+	return func(yield func(uint64, uint64) bool) {
+		for encFunc := range strings.SplitSeq(string(encFuncs), "\n") {
+			// offset:size
+			var offset uint64
+			var size uint64
+			if encFunc == "" {
 				continue
 			}
-			if offset >= mapping.Offset+mapping.Size() {
+			if _, err := fmt.Sscanf(encFunc, "%d:%d", &offset, &size); err != nil {
+				fmt.Printf("Failed to parse encrypted function line %q: %v\n", encFunc, err)
 				continue
 			}
-			off := offset - mapping.Offset + mapping.Start
-			if off+size > mapping.End {
-				continue
+			if !yield(offset, size) {
+				return
 			}
-			fmt.Printf("Decrypting function at offset %#x, size %#x\n", off, size)
-
-			ciphertext := RawMemoryAccess(uintptr(off), int(size))
-			plaintext := make([]byte, size)
-			cipher.XORKeyStream(plaintext, ciphertext)
-			CopyToLocation(uintptr(off), plaintext)
 		}
 	}
-	return nil
 }
