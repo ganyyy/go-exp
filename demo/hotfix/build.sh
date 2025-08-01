@@ -5,4 +5,4 @@
 
 # 获取 当前包对应的包名 go list -v
 
-go build -gcflags="ganyyy.com/go-exp/demo/hotfix/...=-l" -ldflags="-s -w" -trimpath -o hotfix
+go build -ldflags="-s -w" -trimpath -o hotfix
