@@ -141,7 +141,6 @@ func TryDecText(encFuncs []byte, selfPath string) error {
 	for _, mapping := range mappings {
 		fmt.Println("Found mapping:", mapping.String())
 	}
-
 	for offset, size := range encFuncIter(encFuncs) {
 
 		for _, mapping := range mappings {

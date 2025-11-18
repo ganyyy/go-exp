@@ -7,7 +7,14 @@ NAME="plugin_$(date +%s).so"
 
 echo "${NAME}"
 
+
+mv locate/locate.go locate/locate.go.bak
+
+go run locate/gen/gen_locate.go > locate/locate.go
+
 go build --buildmode=plugin -gcflags="" -trimpath -ldflags "-X 'main.Version=${NAME}'" -o "$NAME" plugin.go
+
+mv locate/locate.go.bak locate/locate.go
 
 go run ../enctext/main.go -input "$NAME" -prefix "ganyyy.com/go-exp/demo/hotfix/plugin/fix"
 
