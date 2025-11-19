@@ -3,6 +3,7 @@ package locate
 import (
 	"bufio"
 	"bytes"
+	"crypto/rc4"
 	"fmt"
 	"os"
 	"strconv"
@@ -141,6 +142,10 @@ func TryDecText(encFuncs []byte, selfPath string) error {
 	for _, mapping := range mappings {
 		fmt.Println("Found mapping:", mapping.String())
 	}
+	c, err := rc4.NewCipher([]byte("123456"))
+	if err != nil {
+		panic(fmt.Sprintf("failed to create RC4 cipher: %v", err))
+	}
 	for offset, size := range encFuncIter(encFuncs) {
 
 		for _, mapping := range mappings {
@@ -157,7 +162,7 @@ func TryDecText(encFuncs []byte, selfPath string) error {
 			fmt.Printf("Decrypting function at offset %#x, size %#x\n", off, size)
 
 			ciphertext := RawMemoryAccess(uintptr(off), int(size))
-			copyToLocation(uintptr(off), decText(ciphertext))
+			copyToLocation(uintptr(off), decText(c, ciphertext))
 		}
 	}
 	return nil

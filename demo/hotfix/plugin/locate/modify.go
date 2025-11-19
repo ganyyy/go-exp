@@ -9,11 +9,7 @@ import (
 	"unsafe"
 )
 
-func decText(data []byte) []byte {
-	c, err := rc4.NewCipher([]byte("123456"))
-	if err != nil {
-		panic(fmt.Sprintf("failed to create RC4 cipher: %v", err))
-	}
+func decText(c *rc4.Cipher, data []byte) []byte {
 	var ret = make([]byte, len(data))
 	c.XORKeyStream(ret, data)
 	return ret
